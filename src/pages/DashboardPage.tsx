@@ -1,0 +1,157 @@
+import { useServices, useLiveQuery, useSettings, useSyncStatus, useAuthState } from '../app/ServicesContext.tsx';
+import { computeStats, filterByGameType } from '../domain/stats.ts';
+import { SPEED_LABELS, type SpeedSetting } from '../domain/types.ts';
+import { formatNumber, formatPercent, plural } from '../lib/text.ts';
+import { Button, describeSync, LinkButton, Logo, ProgressBar, Stat } from '../ui/components.tsx';
+import { Icon } from '../ui/Icon.tsx';
+
+function greeting(name: string): string {
+  const h = new Date().getHours();
+  const base = h < 11 ? 'Guten Morgen' : h < 18 ? 'Hallo' : 'Guten Abend';
+  return name ? `${base}, ${name}` : `${base}!`;
+}
+
+export function DashboardPage() {
+  const { store, sync, cloudConfigured } = useServices();
+  const settings = useSettings();
+  const status = useSyncStatus();
+  const auth = useAuthState();
+  const stats = useLiveQuery(async (s) => {
+    const [decks, questions, sessions, answers] = await Promise.all([s.listDecks(), s.listAllQuestions(), s.listSessions(), s.listAnswers()]);
+    const typingBest = filterByGameType(sessions, answers, 'typing').sessions.reduce((m, x) => Math.max(m, x.score), 0);
+    const defenseBest = filterByGameType(sessions, answers, 'defense').sessions.reduce((m, x) => Math.max(m, x.score), 0);
+    return { ...computeStats({ decks, questions, sessions, answers }), defenseBest, typingBest };
+  }, []);
+  const decks = useLiveQuery((s) => s.deckSummaries(), []);
+  const view = describeSync(status);
+
+  return (
+    <div className="page dashboard">
+      <section className="hero card">
+        <Logo size={104} className="hero-logo" />
+        <div className="hero-text">
+          <p className="eyebrow">{greeting(settings?.playerName ?? '')}</p>
+          <h1>Bereit zur Verteidigung?</h1>
+          <p className="muted">Schiesse den Meteoriten mit der richtigen Antwort ab, bevor er den Schutzschild erreicht.</p>
+          <div className="hero-actions">
+            <LinkButton to="/play" variant="primary" size="lg" icon="play">
+              Spielen
+            </LinkButton>
+            <LinkButton to="/decks" icon="decks">
+              Lernpakete
+            </LinkButton>
+            <LinkButton to="/import" icon="import">
+              Fragen importieren
+            </LinkButton>
+          </div>
+        </div>
+      </section>
+
+      {stats && stats.repeatQuestionIds.length > 0 ? (
+        <a className="card repeat-card" href="#/play?mode=repeat">
+          <Icon name="repeat" size={26} />
+          <div>
+            <strong>{plural(stats.repeatQuestionIds.length, 'Frage', 'Fragen')} zum Wiederholen</strong>
+            <span className="muted">Zuletzt falsch beantwortet – jetzt gezielt üben</span>
+          </div>
+          <Icon name="chevron" />
+        </a>
+      ) : null}
+
+      <section className="stats-grid" aria-label="Lernstatistik">
+        <Stat icon="trophy" label="Highscore" value={formatNumber(stats?.highscore ?? 0)} hint={stats?.games ? `Abwehr ${formatNumber(stats.defenseBest)} · Tippen ${formatNumber(stats.typingBest)}` : 'noch kein Spiel'} />
+        <Stat icon="check" label="Erfolgsquote" value={formatPercent(stats?.successRate ?? null)} hint={`${stats?.correct ?? 0} richtig · ${stats?.wrong ?? 0} falsch`} />
+        <Stat icon="play" label="Spielrunden" value={formatNumber(stats?.games ?? 0)} hint={`${stats?.rounds ?? 0} Fragen beantwortet`} />
+        <Stat icon="decks" label="Lernpakete" value={decks?.length ?? 0} hint={`${decks?.reduce((n, d) => n + d.questionCount, 0) ?? 0} Fragen`} />
+      </section>
+
+      <section className="grid-2">
+        <div className={`card sync-card sync-card-${view.tone}`}>
+          <div className="card-title">
+            <Icon name={view.icon} className={view.spinning ? 'spin' : undefined} />
+            <h2>Synchronisierung</h2>
+            <span className={`pill pill-${view.tone}`}>{view.label}</span>
+          </div>
+          <p className="muted">{view.detail}</p>
+          <div className="row">
+            {!cloudConfigured ? (
+              <a className="btn btn-ghost btn-sm" href="#/settings">
+                Wie richte ich die Cloud ein?
+              </a>
+            ) : auth.status === 'signed_in' ? (
+              <Button size="sm" icon="sync" onClick={() => void sync.sync()} disabled={status.phase === 'syncing'}>
+                Jetzt synchronisieren
+              </Button>
+            ) : (
+              <LinkButton to="/account" size="sm" icon="user" variant="primary">
+                Anmelden
+              </LinkButton>
+            )}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-title">
+            <Icon name="settings" />
+            <h2>Einstellungen</h2>
+          </div>
+          <div className="quick-settings">
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings?.soundEnabled ?? true}
+                onChange={(e) => void store.updateSettings({ soundEnabled: e.target.checked })}
+              />
+              <span>Soundeffekte</span>
+            </label>
+            <label className="field field-inline">
+              <span>Tempo</span>
+              <select value={settings?.speed ?? 'normal'} onChange={(e) => void store.updateSettings({ speed: e.target.value as SpeedSetting })}>
+                {(Object.keys(SPEED_LABELS) as SpeedSetting[]).map((s) => (
+                  <option key={s} value={s}>
+                    {SPEED_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <a className="btn btn-ghost btn-sm" href="#/settings">
+            Alle Einstellungen
+          </a>
+        </div>
+      </section>
+
+      <section className="card">
+        <div className="card-title">
+          <Icon name="decks" />
+          <h2>Deine Lernpakete</h2>
+          <a className="link-more" href="#/decks">
+            Alle anzeigen
+          </a>
+        </div>
+        {decks && decks.length > 0 ? (
+          <ul className="deck-mini-list">
+            {decks.slice(0, 5).map(({ deck, questionCount, pending }) => {
+              const progress = stats?.decks.find((d) => d.deckId === deck.id);
+              const mastered = progress && progress.total > 0 ? progress.mastered / progress.total : 0;
+              return (
+                <li key={deck.id}>
+                  <a href={`#/decks/${deck.id}`} className="deck-mini">
+                    <span className="deck-mini-name">{deck.name}</span>
+                    <span className="muted small">
+                      {plural(questionCount, 'Frage', 'Fragen')}
+                      {pending ? ' · lokal gespeichert' : ''}
+                    </span>
+                    <ProgressBar value={mastered} label={`Gelernt: ${formatPercent(mastered)}`} tone="success" />
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="muted">Noch keine Lernpakete – importiere Fragen, um loszulegen.</p>
+        )}
+      </section>
+    </div>
+  );
+}
