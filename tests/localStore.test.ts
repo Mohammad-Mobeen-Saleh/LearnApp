@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { closeAllDevices, makeDrafts, openDevice } from './helpers/devices.ts';
-import { DEMO_DECK_ID, DEMO_QUESTION_COUNT } from '../src/data/demoDeck.ts';
+import { createDemoDeck, DEMO_DECK_ID, DEMO_QUESTION_COUNT } from '../src/data/demoDeck.ts';
 import { SETTINGS_ID } from '../src/domain/types.ts';
 import { createBackup, parseBackup, previewRestore, restoreBackup } from '../src/data/backup.ts';
 
@@ -51,14 +51,45 @@ describe('Lokale Speicherung (IndexedDB)', () => {
     await expect(store.createDeck({ name: ' ' })).rejects.toThrow(/Namen/);
   });
 
-  it('legt beim ersten Start das Demo-Paket (mind. 20 Fragen) und Einstellungen an – nur einmal', async () => {
+  it('startet ohne Demodaten, erstellt nur die Einstellungen und bleibt beim Neustart leer', async () => {
     const { store } = await openDevice('laptop', null, { seed: true });
     expect(await store.seedIfNeeded()).toBe(false);
-    const decks = await store.listDecks();
-    expect(decks.map((d) => d.id)).toEqual([DEMO_DECK_ID]);
-    expect(DEMO_QUESTION_COUNT).toBeGreaterThanOrEqual(20);
-    expect(await store.listQuestions(DEMO_DECK_ID)).toHaveLength(DEMO_QUESTION_COUNT);
+    expect(await store.listDecks()).toHaveLength(0);
+    expect(await store.listAllQuestions()).toHaveLength(0);
     expect((await store.getSettings()).id).toBe(SETTINGS_ID);
+    await store.clearAccountData({ reseed: true });
+    expect(await store.listDecks()).toHaveLength(0);
+    expect(await store.listAllQuestions()).toHaveLength(0);
+    expect((await store.getSettings()).id).toBe(SETTINGS_ID);
+  });
+
+  it('bereinigt alte originale Demo-Fragen und offene Konflikte ohne eigene Lernpakete anzutasten', async () => {
+    const { store } = await openDevice('laptop', null, { seed: true });
+    const own = await store.createDeck({ name: 'Arabisch' });
+    await store.addQuestions(own.id, makeDrafts('Arabisch', 2));
+    const demo = createDemoDeck(new Date().toISOString());
+    await store.importRecords({ decks: [demo.deck], questions: demo.questions, undelete: [], sessions: [], answers: [] });
+    const before = await store.previewDemoCleanup();
+    expect(before).toMatchObject({ deckToRemove: true, questionsToRemove: DEMO_QUESTION_COUNT, protectedRecords: 0 });
+    const result = await store.cleanupDemoData();
+    expect(result.questionsToRemove).toBe(DEMO_QUESTION_COUNT);
+    expect((await store.getDeck(DEMO_DECK_ID))?.deleted).toBe(true);
+    expect(await store.listQuestions(DEMO_DECK_ID)).toHaveLength(0);
+    expect(await store.listQuestions(own.id)).toHaveLength(2);
+    expect((await store.cleanupDemoData()).questionsToRemove).toBe(0);
+  });
+
+  it('schützt geänderte Demo-Inhalte und selbst ergänzte Fragen vor automatischer Bereinigung', async () => {
+    const { store } = await openDevice('laptop', null);
+    const demo = createDemoDeck(new Date().toISOString());
+    await store.importRecords({ decks: [demo.deck], questions: demo.questions, undelete: [], sessions: [], answers: [] });
+    await store.updateQuestion(demo.questions[0].id, { question: 'Meine eigene Frage?' });
+    const plan = await store.previewDemoCleanup();
+    expect(plan.contentBlocked).toBe(true);
+    expect(plan.protectedRecords).toBeGreaterThan(0);
+    await store.cleanupDemoData();
+    expect((await store.getDeck(DEMO_DECK_ID))?.deleted).toBe(false);
+    expect(await store.listQuestions(DEMO_DECK_ID)).toHaveLength(DEMO_QUESTION_COUNT);
   });
 
   it('ersetzt Fragen nur bei ausdrücklicher Auswahl und behält sonst alles', async () => {

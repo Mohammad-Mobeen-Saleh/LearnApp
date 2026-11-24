@@ -1,5 +1,6 @@
 import { runTransaction, openDatabase, STORE_NAMES, type StoreName, type Tx } from './idb.ts';
-import { createDemoDeck } from './demoDeck.ts';
+import { DEMO_DECK_ID } from './demoDeck.ts';
+import { isOriginalDemoConflict, isOriginalDemoQuestion, planDemoCleanup, type DemoCleanupPreview } from './demoCleanup.ts';
 import { uuid } from '../lib/uuid.ts';
 import { cleanDraft, validateDraft } from '../import/validate.ts';
 import { ALL_COLLECTIONS, COLLECTIONS, outboxKey, pickFields, type AnyRecord } from '../sync/collections.ts';
@@ -752,32 +753,71 @@ export class LocalStore {
 
   // ------------------------------------------------------------------ Kontowechsel / Erststart
 
-  /** Legt beim allerersten Start Demo-Paket und Standard-Einstellungen an. */
+  /** Erstellt beim ersten Start ausschliesslich Standardeinstellungen. Keine Demodaten. */
   async seedIfNeeded(): Promise<boolean> {
-    const seeded = await this.run(CONTENT_STORES.concat(['outbox', 'meta']), 'readwrite', async (t) => {
+    const initialized = await this.run(['user_settings', 'outbox', 'meta'], 'readwrite', async (t) => {
       const flag = await t.get<MetaRecord>('meta', 'seeded');
-      if (flag?.value) return false;
-      const now = nowIso();
+      if (flag?.value === true) return false;
       if (!(await t.get('user_settings', SETTINGS_ID))) {
-        const settings = makeSettings(DEFAULT_SETTINGS, now);
+        const settings = makeSettings(DEFAULT_SETTINGS, nowIso());
         await t.put('user_settings', settings);
-        await this.enqueue(t, 'user_settings', SETTINGS_ID, null, pickFields(COLLECTIONS.user_settings, settings as unknown as AnyRecord));
-      }
-      const { deck, questions } = createDemoDeck(now);
-      if (!(await t.get('decks', deck.id))) {
-        await t.put('decks', deck);
-        // Basis = Seed-Inhalt: unveränderte Demo-Daten zweier Geräte werden als identisch erkannt
-        await this.enqueue(t, 'decks', deck.id, null, pickFields(COLLECTIONS.decks, deck as unknown as AnyRecord));
-        for (const q of questions) {
-          await t.put('questions', q);
-          await this.enqueue(t, 'questions', q.id, null, pickFields(COLLECTIONS.questions, q as unknown as AnyRecord));
-        }
+        await this.enqueue(t, 'user_settings', SETTINGS_ID, null,
+          pickFields(COLLECTIONS.user_settings, settings as unknown as AnyRecord));
       }
       await t.put('meta', { key: 'seeded', value: true });
       return true;
     });
-    if (seeded) this.emit(ALL_STORES, 'local');
-    return seeded;
+    if (initialized) this.emit(['user_settings', 'outbox'], 'local');
+    return initialized;
+  }
+
+  /** Zeigt ausschliesslich eindeutig zuordenbare alte Demodaten an. */
+  async previewDemoCleanup(): Promise<DemoCleanupPreview> {
+    return this.run(['decks', 'questions', 'sync_conflicts'], 'readonly', async (t) => {
+      const deck = await t.get<Deck>('decks', DEMO_DECK_ID);
+      const questions = await t.getAllByIndex<Question>('questions', 'deckId', DEMO_DECK_ID);
+      const conflicts = await t.getAll<ConflictRecord>('sync_conflicts');
+      return planDemoCleanup(deck, questions, conflicts);
+    });
+  }
+
+  /**
+   * Einmalige, wiederholbar sichere Bereinigung der alten Demodaten.
+   * Ursprüngliche Fragen werden mit Löschmarkern synchronisiert; persönliche
+   * Bearbeitungen bleiben unangetastet. Nur eindeutig zugeordnete Konflikte
+   * werden als erledigt (Server-Stand behalten) gekennzeichnet.
+   */
+  async cleanupDemoData(): Promise<DemoCleanupPreview> {
+    const report = await this.run(CONTENT_STORES.concat(['outbox', 'meta']), 'readwrite', async (t) => {
+      const deck = await t.get<Deck>('decks', DEMO_DECK_ID);
+      const questions = await t.getAllByIndex<Question>('questions', 'deckId', DEMO_DECK_ID);
+      const conflicts = await t.getAll<ConflictRecord>('sync_conflicts');
+      const plan = planDemoCleanup(deck, questions, conflicts);
+      if (!plan.contentBlocked) {
+        for (const question of questions) {
+          if (!question.deleted && isOriginalDemoQuestion(question.id, question)) {
+            await this.writeLocal(t, 'questions', question.id, { deleted: true });
+          }
+        }
+        if (plan.deckToRemove) await this.writeLocal(t, 'decks', DEMO_DECK_ID, { deleted: true });
+      }
+      for (const conflict of conflicts) {
+        if (!isOriginalDemoConflict(conflict)) continue;
+        const previous = { ...conflict } as unknown as AnyRecord;
+        await t.put('sync_conflicts', {
+          ...conflict,
+          resolved: true,
+          resolution: 'keep_remote',
+          updatedAt: nowIso(),
+        });
+        await this.enqueue(t, 'sync_conflicts', conflict.id, previous);
+      }
+      return plan;
+    });
+    if (report.deckToRemove || report.questionsToRemove || report.conflictsToResolve) {
+      this.emit(['decks', 'questions', 'sync_conflicts', 'outbox'], 'local');
+    }
+    return report;
   }
 
   /** Entfernt alle Kontodaten von diesem Gerät (Abmelden). Die Geräte-ID bleibt erhalten. */

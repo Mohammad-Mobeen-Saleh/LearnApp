@@ -2,7 +2,6 @@ import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { MemoryServer } from './helpers/memoryServer.ts';
 import { closeAllDevices, deckNames, makeDrafts, openDevice } from './helpers/devices.ts';
 import { tryCreatePgliteServer, type PgliteServer } from './helpers/pgliteServer.ts';
-import { DEMO_DECK_ID, DEMO_QUESTION_COUNT } from '../src/data/demoDeck.ts';
 import { computeStats } from '../src/domain/stats.ts';
 import type { SyncRemote } from '../src/sync/types.ts';
 
@@ -359,7 +358,7 @@ describe.each(backends)('Synchronisierung zwischen Laptop und iPhone – $name',
     expect(await deckNames(iphone.store)).toEqual([]);
   });
 
-  it('erstes Login: lokale Pakete werden sicher mit dem Konto zusammengeführt, Demo-Paket nicht doppelt', async () => {
+  it('erstes Login: lokale Pakete werden sicher zusammengeführt, ohne Demodaten', async () => {
     // Laptop nutzt bereits das Konto
     const laptop = await openDevice('laptop', env.remote(), { seed: true });
     const java = await laptop.store.createDeck({ name: 'Java' });
@@ -380,15 +379,13 @@ describe.each(backends)('Synchronisierung zwischen Laptop und iPhone – $name',
 
     for (const device of [laptop, iphone]) {
       const decks = await device.store.listDecks();
-      expect(decks.map((d) => d.name).sort()).toEqual(['Arabisch', 'Informatik-Grundlagen (Demo)', 'Java']);
-      expect(decks.filter((d) => d.id === DEMO_DECK_ID)).toHaveLength(1);
-      expect(await device.store.listQuestions(DEMO_DECK_ID)).toHaveLength(DEMO_QUESTION_COUNT);
+      expect(decks.map((d) => d.name).sort()).toEqual(['Arabisch', 'Java']);
       expect(await device.store.listQuestions(java.id)).toHaveLength(5);
       expect(await device.store.listQuestions(local.id)).toHaveLength(3);
       expect((await device.store.getSettings()).playerName).toBe('Sami');
       expect(await device.store.listConflicts()).toHaveLength(0);
     }
-    expect((await env.serverRows('decks')).length).toBe(3);
+    expect((await env.serverRows('decks')).length).toBe(2);
   });
 
   it('Lernfortschritt beider Geräte addiert sich (kein gegenseitiges Überschreiben)', async () => {

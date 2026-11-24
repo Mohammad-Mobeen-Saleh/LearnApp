@@ -106,7 +106,7 @@ export class AccountManager {
     await this.auth.signOut();
     this.boundUser = null;
     this.sync.setRemote(null);
-    await this.store.clearAccountData({ reseed: true });
+    await this.store.clearAccountData({ reseed: false });
     return { ok: true, pending: 0 };
   }
 }

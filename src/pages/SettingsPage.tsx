@@ -36,6 +36,7 @@ export function SettingsPage() {
   const [includeProgress, setIncludeProgress] = useState(true);
   const [restoreDeleted, setRestoreDeleted] = useState(false);
   const [persisted, setPersisted] = useState<boolean | null>(null);
+  const [cleaningDemo, setCleaningDemo] = useState(false);
 
   useEffect(() => setName(settings?.playerName ?? ''), [settings?.playerName]);
   useEffect(() => setLabel(deviceLabel ?? ''), [deviceLabel]);
@@ -50,6 +51,54 @@ export function SettingsPage() {
     const date = new Date().toISOString().slice(0, 10);
     await download(`meteor-defense-sicherung-${date}.json`, JSON.stringify(file, null, 2));
     toast('Sicherung erstellt.', 'success');
+  };
+
+  const cleanupDemo = async () => {
+    if (cleaningDemo) return;
+    setCleaningDemo(true);
+    try {
+      // Vor dem Aufräumen die letzte Cloud-Version abholen.
+      if (sync.hasRemote) {
+        const result = await sync.sync();
+        if (!result.ok) throw new Error('Cloud-Synchronisierung fehlgeschlagen. Bitte zuerst die Verbindung prüfen.');
+      }
+      const preview = await store.previewDemoCleanup();
+      if (!preview.deckToRemove && !preview.questionsToRemove && !preview.conflictsToResolve) {
+        toast(preview.protectedRecords
+          ? 'Demo-Inhalte wurden verändert. Aus Sicherheitsgründen nicht automatisch entfernt.'
+          : 'Keine alten Demo-Daten oder Demo-Konflikte gefunden.', 'info');
+        return;
+      }
+      const ok = await confirm({
+        title: 'Alte Demo-Daten bereinigen?',
+        message: (
+          <div>
+            <p>Es werden {preview.deckToRemove ? '1 Lernpaket, ' : ''}{preview.questionsToRemove} unveränderte Demo-Fragen und {preview.conflictsToResolve} eindeutig zugeordnete Demo-Konflikte bereinigt.</p>
+            {preview.protectedRecords ? <p>{preview.protectedRecords} veränderte oder nicht eindeutig zuordenbare Datensätze bleiben geschützt.</p> : null}
+            <p>Vor der Bereinigung wird automatisch eine JSON-Datensicherung erstellt. Bitte bewahre sie auf. Eigene Lernpakete werden nicht entfernt.</p>
+          </div>
+        ),
+        confirmLabel: 'Sicherung erstellen und bereinigen',
+        danger: true,
+      });
+      if (!ok) return;
+      const date = new Date().toISOString().slice(0, 10);
+      await download(`meteor-defense-vor-demo-bereinigung-${date}.json`, JSON.stringify(await createBackup(store), null, 2));
+      const report = await store.cleanupDemoData();
+      if (sync.hasRemote) {
+        const synced = await sync.sync();
+        toast(synced.ok
+          ? `Demo-Bereinigung synchronisiert: ${report.questionsToRemove} Fragen, ${report.conflictsToResolve} Konflikte.`
+          : 'Lokal bereinigt. Die Übertragung in die Cloud steht noch aus.', synced.ok ? 'success' : 'warning');
+      } else {
+        toast('Demo-Daten lokal bereinigt. Ohne Anmeldung wird nicht synchronisiert.', 'warning');
+      }
+      if (report.protectedRecords) toast('Einige bearbeitete Demo-Inhalte wurden aus Sicherheitsgründen behalten.', 'warning');
+    } catch (error) {
+      toast(`Demo-Bereinigung fehlgeschlagen: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    } finally {
+      setCleaningDemo(false);
+    }
   };
 
   const loadBackup = async (file: File) => {
@@ -243,6 +292,12 @@ export function SettingsPage() {
               <input type="file" accept=".json,application/json" onChange={(e) => e.target.files?.[0] && void loadBackup(e.target.files[0])} />
             </label>
           </div>
+          <div className="row" style={{ marginTop: 12 }}>
+            <Button variant="secondary" disabled={cleaningDemo} onClick={() => void cleanupDemo()}>
+              {cleaningDemo ? 'Bereinigung läuft …' : 'Alte Demo-Daten bereinigen'}
+            </Button>
+          </div>
+          <p className="muted small">Entfernt nur das automatisch erstellte Informatik-Demopaket und eindeutig zugehörige Konflikte. Eigene oder bearbeitete Inhalte werden geschützt.</p>
           {backupWarnings.length ? (
             <ul className="warning-list">
               {backupWarnings.map((w) => (
