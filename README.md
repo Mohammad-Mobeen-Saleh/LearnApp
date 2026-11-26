@@ -38,7 +38,7 @@ Eine einzige Progressive Web App für iPhone und Windows-Laptop – mit gemeinsa
 | **Lernpakete** | erstellen, umbenennen, löschen (mit Bestätigung), importieren, als JSON exportieren, Anzeige «lokal gespeichert» / «synchron» |
 | **Fragenverwaltung** | alle Fragen eines Pakets ansehen, durchsuchen, hinzufügen, korrigieren, löschen |
 | **Abwehrmodus (Phaser 3)** | kontinuierlich: 3 Meteoriten mit je einer Antwort, richtige Antwort → Abschuss und sofort die nächste Frage; eine falsche Antwort beendet das Spiel. Endlos, das Paket wird automatisch neu gemischt. Tempo- und Serienbonus, Explosionen, Soundeffekte, Pause, Neustart, Ergebnis – per Touch, Maus und Tastatur (1/2/3, Esc) |
-| **Tippmodus** | ein Meteorit fällt, die Antwort wird eingetippt (Enter oder «Feuer»). Richtig → Abschuss, Punkte, nächster Meteorit sofort; falsch → −10 Punkte, der Meteorit fällt weiter; Einschlag → Game Over. Gross-/Kleinschreibung und Leerzeichen werden ignoriert, optionale weitere gültige Antworten |
+| **Tippmodus** | ein Meteorit fällt, die Antwort wird eingetippt und mit Enter bzw. der Senden-Taste der iPhone-Tastatur abgeschickt; eine vollständig richtige Antwort wird schon beim Tippen erkannt. Richtig → Abschuss, Punkte, nächster Meteorit sofort; falsch → −10 Punkte, der Meteorit fällt weiter; Einschlag → Game Over. Gross-/Kleinschreibung und Leerzeichen werden ignoriert, optionale weitere gültige Antworten |
 | **Statistik** | richtig/falsch, Erfolgsquote, Spielrunden, Highscore, Fortschritt pro Fach, Fragen zum Wiederholen, letzte Spiele – gesamt oder getrennt nach Abwehr- und Tippmodus |
 | **Import** | Textformat und JSON, Vorschau, Fehlererkennung, Duplikatprüfung, «ergänzen» (Standard) oder ausdrücklich «ersetzen» |
 | **Synchronisierung** | Supabase (Auth + PostgreSQL), IndexedDB lokal, Warteschlange, Versionsprüfung, Konfliktzentrale, Tombstones, Offline-Betrieb |
@@ -120,6 +120,7 @@ Was die Tests abdecken:
 | `tests/sync.test.ts` | Laptop erstellt Paket A, iPhone Paket B → beide haben A und B; Offline-Änderungen; verlorene Server-Antwort ohne Duplikat; Konflikte (Bearbeiten/Bearbeiten, Löschen/Bearbeiten in beide Richtungen, gelöschtes Paket); veraltetes Gerät stellt Gelöschtes nicht wieder her; erstes Login mit lokalen Daten; Fortschritt beider Geräte; Einstellungen |
 | `tests/sql/migration.test.ts` | die **echte SQL-Migration** in PostgreSQL (PGlite): Row Level Security, Rechte, Versionsprüfung, Zähler, Idempotenz |
 | `tests/modes.test.ts` | Abwehrmodus kontinuierlich (sofort nächste Frage, Fehler = Game Over, neu mischen), Tippmodus (Normalisierung, −10 Punkte, kein doppelter Abzug, Einschlag), akzeptierte Antworten im Import, Statistik je Modus |
+| `tests/displayAndSpeed.test.ts` | Aufteilung arabisch/lateinischer Texte, Geschwindigkeit «Stillstand» in beiden Modi |
 | `tests/config.test.ts` | lokaler Modus ohne Konfiguration; geheime Schlüssel werden im Frontend abgelehnt |
 | `e2e/app.spec.ts` | keine überlappenden Bedienelemente / kein horizontales Überlaufen auf iPhone 13 Pro Max (hoch/quer), iPhone SE und Laptop; Spiel per Klick und Tastatur; Import; Manifest und Icons |
 
@@ -322,12 +323,16 @@ Nach der Wahl eines Lernpakets wählst du den **Spielmodus** (der zuletzt gewäh
 - Endlos: Ist das Paket durchgespielt, wird es neu gemischt; keine Frage kommt doppelt, bevor alle einmal dran waren.
 
 **Tippmodus**
-- Ein Meteorit fällt, die Frage steht oben. Antwort eintippen und mit **Enter** oder **«Feuer»** abschicken.
+- Ein Meteorit fällt, die Frage steht oben. Antwort eintippen und mit **Enter** (Windows) bzw. der **Senden-Taste** der Bildschirmtastatur (iPhone) abschicken. Eine vollständig richtig eingetippte Antwort wird sofort als Treffer erkannt – Punkte werden nur beim ausdrücklichen Abschicken abgezogen, nie pro Tastendruck.
 - Richtig (Gross-/Kleinschreibung, Leerzeichen am Rand und doppelte Leerzeichen egal): Abschuss, Punkte, nächster Meteorit sofort.
 - Falsch: **−10 Punkte** (nie unter 0), das Feld wird geleert und bleibt aktiv, der Meteorit fällt weiter. Nur ausdrücklich abgeschickte Eingaben zählen.
 - Erreicht der Meteorit den Schutzschild: Game Over. Die Fallzeit berücksichtigt die Länge der Frage und der Lösung.
 - iPhone: Das Spielfeld passt sich der Bildschirmtastatur an; Antippen des Spielfelds schliesst die Tastatur nicht.
 - In der Statistik zählt eine Frage im Tippmodus als richtig, wenn sie beim ersten Versuch stimmt.
+
+**Tempo:** Gemütlich, Normal, Schnell oder **Stillstand (unbegrenzte Zeit)**. Bei Stillstand bleiben die Meteoriten stehen, es gibt keinen Zeitablauf und keinen Tempobonus; Fehler wirken wie gewohnt (Abwehrmodus: Game Over, Tippmodus: −10 Punkte). Über Pause → «Spiel beenden» erscheint das Ergebnis.
+
+**Arabische und gemischte Texte:** Antwortbeschriftungen der Meteoriten sind HTML-Elemente über dem Spielfeld, die den Meteoriten folgen. Arabischer Text und lateinische Umschrift (z. B. «حَدِيقَة (ḥadīqa)») erhalten jeweils eine eigene, isolierte Schreibrichtung (RTL bzw. LTR), Vokalzeichen werden vollständig dargestellt, Wörter nicht getrennt; bei Platzmangel stehen Arabisch und Umschrift auf zwei Zeilen und die Schrift wird verkleinert. Die gespeicherten Fragen bleiben unverändert.
 
 **Punkte (beide Modi):** Grundpunkte (leicht 80, mittel 100, schwer 130) + **Tempobonus** bis +50 % je nach Restzeit, multipliziert mit dem **Serienbonus** (+10 % pro Treffer in Folge, max. ×1,5). Highscores werden pro Modus geführt.
 

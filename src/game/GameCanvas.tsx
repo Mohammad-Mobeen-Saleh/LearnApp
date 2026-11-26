@@ -8,10 +8,13 @@ import { MeteorScene, type GameBridge } from './MeteorScene.ts';
  */
 export function GameCanvas({ bridge }: { bridge: GameBridge }) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const labelsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+    // HTML-Ebene für Antwortbeschriftungen (korrekte arabische Schrift und Schreibrichtung)
+    bridge.labelLayer = labelsRef.current;
     const dpr = bridge.pixelRatio;
     const size = () => ({
       w: Math.max(1, Math.round(host.clientWidth * dpr)),
@@ -57,8 +60,14 @@ export function GameCanvas({ bridge }: { bridge: GameBridge }) {
       window.removeEventListener('orientationchange', resize);
       bridge.detach(scene);
       game.destroy(true);
+      bridge.labelLayer = null;
+      labelsRef.current?.replaceChildren();
     };
   }, [bridge]);
 
-  return <div className="game-canvas" ref={hostRef} />;
+  return (
+    <div className="game-canvas" ref={hostRef}>
+      <div className="answer-labels" ref={labelsRef} aria-hidden="true" />
+    </div>
+  );
 }

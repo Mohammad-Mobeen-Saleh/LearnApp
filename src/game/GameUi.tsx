@@ -5,10 +5,29 @@ import { acceptedSolutions } from '../domain/answerCheck.ts';
 import { ANSWER_LETTERS, GAME_TYPE_LABELS, type AnswerOutcome, type GameMode, type GameType } from '../domain/types.ts';
 import { uuid } from '../lib/uuid.ts';
 import { formatNumber, plural } from '../lib/text.ts';
+import { splitBidiSegments } from '../lib/bidi.ts';
 import { Button } from '../ui/components.tsx';
 import { Icon } from '../ui/Icon.tsx';
 
 /** Gemeinsame Bausteine von Abwehr- und Tippmodus. */
+
+/**
+ * Text mit gemischten Schriften (z. B. «حَدِيقَة (ḥadīqa)»): jeder arabische und lateinische
+ * Abschnitt bekommt eine eigene, isolierte Schreibrichtung. Reine lateinische Texte bleiben unverändert.
+ */
+export function BidiText({ text }: { text: string }) {
+  const segments = splitBidiSegments(text);
+  if (!segments.some((seg) => seg.dir === 'rtl')) return <>{text}</>;
+  return (
+    <span className="bidi-text" dir={segments.length === 1 ? 'rtl' : 'ltr'}>
+      {segments.map((seg, i) => (
+        <span key={i} dir={seg.dir} lang={seg.dir === 'rtl' ? 'ar' : undefined} className={seg.dir === 'rtl' ? 'seg seg-rtl' : 'seg seg-ltr'}>
+          {seg.text}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 export interface SessionSummaryInput {
   gameType: GameType;
@@ -98,7 +117,8 @@ const MODE_TEXT: Record<GameType, { title: string; text: ReactNode; keys: string
     title: 'Tippmodus',
     text: (
       <>
-        Ein Meteorit fällt Richtung Erde. <strong>Tippe die richtige Antwort ein</strong> und bestätige mit Enter. Falsche Eingabe: −10
+        Ein Meteorit fällt Richtung Erde. <strong>Tippe die richtige Antwort ein</strong> und schicke sie mit Enter bzw. der
+        Senden-Taste der Bildschirmtastatur ab – eine vollständig richtige Antwort wird sofort erkannt. Falsche Eingabe: −10
         Punkte, der Meteorit fällt weiter. Erreicht er den Schutzschild, ist das Spiel vorbei.
       </>
     ),
@@ -113,6 +133,7 @@ export function ReadyPanel({
   onExit,
   questionCount,
   repeat,
+  unlimited = false,
 }: {
   gameType: GameType;
   onChangeType: (t: GameType) => void;
@@ -120,6 +141,8 @@ export function ReadyPanel({
   onExit: () => void;
   questionCount: number;
   repeat: boolean;
+  /** Geschwindigkeit «Stillstand» */
+  unlimited?: boolean;
 }) {
   const info = MODE_TEXT[gameType];
   return (
@@ -142,6 +165,12 @@ export function ReadyPanel({
           ))}
         </div>
         <p className="mode-text">{info.text}</p>
+        {unlimited ? (
+          <p className="info-text small still-hint">
+            <strong>Stillstand:</strong> Die Meteoriten bleiben stehen – du hast unbegrenzt Zeit. Es gibt keinen Tempobonus. Beenden über
+            Pause → «Spiel beenden» zeigt dein Ergebnis.
+          </p>
+        ) : null}
         <p className="muted small">
           {repeat ? `Wiederholung: ${plural(questionCount, 'Frage', 'Fragen')}` : `${plural(questionCount, 'Frage', 'Fragen')} – endlos, wird automatisch neu gemischt`} ·{' '}
           {info.keys}
@@ -248,9 +277,14 @@ export function ResultsPanel({
         </dl>
         {decisive ? (
           <div className="decisive">
-            <strong>{decisive.question}</strong>
+            <strong>
+              <BidiText text={decisive.question} />
+            </strong>
             <span>
-              Richtig wäre: <strong>{solutionText(decisive)}</strong>
+              Richtig wäre:{' '}
+              <strong>
+                <BidiText text={solutionText(decisive)} />
+              </strong>
             </span>
             {decisive.explanation ? <span className="muted small">{decisive.explanation}</span> : null}
           </div>
@@ -277,8 +311,12 @@ export function ResultsPanel({
             <ul>
               {others.map((q) => (
                 <li key={q.id}>
-                  <strong>{q.question}</strong>
-                  <span>Richtig: {solutionText(q)}</span>
+                  <strong>
+                    <BidiText text={q.question} />
+                  </strong>
+                  <span>
+                    Richtig: <BidiText text={solutionText(q)} />
+                  </span>
                   {q.explanation ? <span className="muted small">{q.explanation}</span> : null}
                 </li>
               ))}

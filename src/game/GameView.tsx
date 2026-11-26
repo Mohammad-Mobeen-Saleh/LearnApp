@@ -4,7 +4,7 @@ import { DIFFICULTY_LABELS, type GameMode, type GameType, type Settings } from '
 import { formatNumber, formatPercent } from '../lib/text.ts';
 import { Icon } from '../ui/Icon.tsx';
 import { GameCanvas } from './GameCanvas.tsx';
-import { PausePanel, ReadyPanel, ResultsPanel, ScorePop, useAutoPause, useGameRecorder } from './GameUi.tsx';
+import { BidiText, PausePanel, ReadyPanel, ResultsPanel, ScorePop, useAutoPause, useGameRecorder } from './GameUi.tsx';
 import { GameBridge, type SceneRound } from './MeteorScene.ts';
 import { SoundFx } from './sfx.ts';
 
@@ -130,7 +130,7 @@ export function GameView({ questions, deckId, mode, title, settings, previousHig
     onScore?.('defense', s.score);
     setOverlay('results');
     bridge.clear();
-    sfx.play(s.reason === 'completed' ? 'win' : 'gameover');
+    sfx.play(s.reason === 'completed' || s.reason === 'quit' ? 'win' : 'gameover');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bridge, recorder, sfx, onScore]);
   finishGameRef.current = finishGame;
@@ -187,11 +187,18 @@ export function GameView({ questions, deckId, mode, title, settings, previousHig
     const c = controllerRef.current;
     if (c.phase !== 'over' && c.answeredRounds > 0) {
       c.quit();
+      if (settings.speed === 'still') {
+        // Stillstand hat kein Zeitlimit: Beenden zeigt das Ergebnis statt direkt zum Dashboard zu wechseln
+        sfx.resume();
+        bridge.resume();
+        finishGameRef.current();
+        return;
+      }
       recorder.recordSession(toSession(c.summary()));
     }
     onExit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onExit, recorder]);
+  }, [onExit, recorder, settings.speed, bridge, sfx]);
 
   // Tastatur: 1/2/3 bzw. A/B/C schiessen, Esc/P Pause, Enter startet
   useEffect(() => {
@@ -279,7 +286,9 @@ export function GameView({ questions, deckId, mode, title, settings, previousHig
               {question.category ? <span>· {question.category}</span> : null}
               <span>· {DIFFICULTY_LABELS[question.difficulty]}</span>
             </div>
-            <h1 className={questionLength > 160 ? 'q-long' : questionLength > 80 ? 'q-medium' : undefined}>{question.question}</h1>
+            <h1 className={questionLength > 160 ? 'q-long' : questionLength > 80 ? 'q-medium' : undefined}>
+              <BidiText text={question.question} />
+            </h1>
           </>
         ) : (
           <h1>{title}</h1>
@@ -290,7 +299,7 @@ export function GameView({ questions, deckId, mode, title, settings, previousHig
         <GameCanvas bridge={bridge} />
 
         {overlay === 'ready' ? (
-          <ReadyPanel gameType="defense" onChangeType={onChangeType} onStart={start} onExit={onExit} questionCount={questions.length} repeat={mode === 'repeat'} />
+          <ReadyPanel gameType="defense" onChangeType={onChangeType} onStart={start} onExit={onExit} questionCount={questions.length} repeat={mode === 'repeat'} unlimited={settings.speed === 'still'} />
         ) : null}
 
         {overlay === 'paused' ? (
@@ -299,9 +308,9 @@ export function GameView({ questions, deckId, mode, title, settings, previousHig
 
         {overlay === 'results' && summary ? (
           <ResultsPanel
-            heading={summary.reason === 'completed' ? 'Geschafft – die Erde ist sicher!' : 'Game Over'}
+            heading={summary.reason === 'completed' ? 'Geschafft – die Erde ist sicher!' : summary.reason === 'quit' ? 'Runde beendet' : 'Game Over'}
             reasonText={endReason}
-            decisive={summary.reason === 'completed' ? null : (last?.question ?? null)}
+            decisive={summary.reason === 'completed' || summary.reason === 'quit' ? null : (last?.question ?? null)}
             score={summary.score}
             isNewHighscore={newRecord}
             highscore={highscore}

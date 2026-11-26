@@ -4,6 +4,8 @@
 
 :root {
   color-scheme: dark;
+  /* Arabische Systemschriften: iPhone (SF Arabic / Geeza Pro), Windows (Segoe UI / Tahoma) */
+  --font-arabic: 'SF Arabic', 'Geeza Pro', 'Segoe UI', 'Noto Naskh Arabic', 'Noto Sans Arabic', Tahoma, 'Arial', sans-serif;
   --bg: #070b1f;
   --bg-2: #0b1030;
   --surface: rgba(19, 26, 66, 0.72);
@@ -2247,14 +2249,20 @@ body.in-game .toasts {
 
 .typing-row {
   display: flex;
-  gap: 8px;
-  max-width: 720px;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .typing-input {
   flex: 1;
-  min-height: 48px;
+  width: 100%;
+  min-height: 50px;
+  text-align: center;
+  /* Arabisch/Lateinisch: Schreibrichtung folgt der Eingabe (dir="auto") */
+  unicode-bidi: plaintext;
+  font-family: var(--font), var(--font-arabic);
   font-size: 18px; /* ≥ 16px: kein automatisches Zoomen auf dem iPhone */
   font-weight: 600;
   border-radius: 14px;
@@ -2285,11 +2293,6 @@ body.in-game .toasts {
   .score-pop {
     animation: none;
   }
-}
-
-.typing-submit {
-  min-height: 48px;
-  flex: none;
 }
 
 .typing-feedback {
@@ -2332,10 +2335,6 @@ body.in-game .toasts {
   .hud-mode {
     display: none;
   }
-
-  .typing-submit span {
-    display: none;
-  }
 }
 
 /* iPhone quer: Eingabe in der linken Spalte unter der Frage */
@@ -2357,4 +2356,137 @@ body.in-game .toasts {
   .hud-mode {
     display: none;
   }
+}
+
+/* ------------------------------------------------------------------ Antwortbeschriftungen der Meteoriten (HTML über der Canvas) */
+
+.answer-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none; /* Klicks/Touch gehen an das Spielfeld (Trefferspalten) */
+  contain: layout style;
+}
+
+.answer-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05em 0.35em;
+  min-width: 70px;
+  width: max-content;
+  padding: 0.35em 0.65em;
+  border-radius: 12px;
+  border: 1.5px solid rgba(99, 102, 241, 0.7);
+  background: rgba(16, 23, 63, 0.94);
+  color: #eef2ff;
+  font-family: var(--font);
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  will-change: transform, opacity;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+.answer-label .seg {
+  /* jeder Abschnitt mit eigener, isolierter Schreibrichtung */
+  unicode-bidi: isolate;
+  white-space: nowrap; /* Wörter nicht mitten im Wort trennen */
+  max-width: 100%;
+}
+
+.answer-label .seg-ltr {
+  white-space: normal; /* lateinische Mehrwort-Texte dürfen umbrechen */
+  overflow-wrap: normal;
+}
+
+.answer-label .seg-rtl {
+  font-family: var(--font-arabic);
+  font-weight: 600;
+  /* Platz für Vokalzeichen (Harakat) über und unter den Buchstaben */
+  line-height: 1.75;
+  font-size: 1.12em;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.answer-label .word {
+  white-space: nowrap;
+}
+
+.answer-label.force-wrap .seg-ltr .word {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.answer-label .key-hint {
+  position: absolute;
+  left: 2px;
+  top: -9px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: #a5b4fc;
+  color: #0b1030;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.answer-label.tone-hover {
+  border-color: #22d3ee;
+  border-width: 2.5px;
+}
+
+.answer-label.tone-correct {
+  border-color: #34d399;
+  border-width: 2.5px;
+  background: rgba(6, 78, 59, 0.94);
+}
+
+.answer-label.tone-wrong {
+  border-color: #f87171;
+  border-width: 2.5px;
+  background: rgba(127, 29, 29, 0.94);
+}
+
+.still-hint {
+  text-align: left;
+}
+
+/* geöffnete iPhone-Tastatur: unten keinen Sicherheitsabstand für den Home-Balken */
+.game-typing.keyboard-open {
+  padding-bottom: 0;
+}
+
+/* Gemischte arabisch-lateinische Texte in HTML (Frage, Ergebnis) */
+.bidi-text {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.35em;
+  unicode-bidi: isolate;
+  max-width: 100%;
+}
+
+.bidi-text .seg {
+  unicode-bidi: isolate;
+}
+
+.bidi-text .seg-rtl {
+  font-family: var(--font-arabic);
+  font-size: 1.1em;
+  line-height: 1.7;
+}
+
+.game-question h1 .bidi-text {
+  /* Frage zentriert lassen, wie sie bisher ausgerichtet ist (links) */
+  vertical-align: baseline;
 }

@@ -11,7 +11,22 @@ export const MAX_STREAK_STEPS = 5;
 
 /** Lesegeschwindigkeit (Zeichen pro Sekunde), mit der die Flugzeit verlängert wird. */
 export const READING_CHARS_PER_SECOND = 14;
-export const BASE_DURATION_MS: Record<SpeedSetting, number> = { slow: 9000, normal: 6000, fast: 3500 };
+/** «Stillstand»: unbegrenzte Zeit (Infinity) – die Meteoriten bewegen sich nicht. */
+export const UNLIMITED_DURATION = Number.POSITIVE_INFINITY;
+export const BASE_DURATION_MS: Record<SpeedSetting, number> = { slow: 9000, normal: 6000, fast: 3500, still: UNLIMITED_DURATION };
+
+export function isUnlimited(durationMs: number): boolean {
+  return !Number.isFinite(durationMs);
+}
+
+/**
+ * Anteil der verbleibenden Zeit (0…1) für den Tempobonus.
+ * Bei unbegrenzter Zeit gibt es keinen Tempobonus.
+ */
+export function remainingFraction(responseMs: number, durationMs: number): number {
+  if (isUnlimited(durationMs) || durationMs <= 0) return 0;
+  return clamp(1 - responseMs / durationMs, 0, 1);
+}
 export const MIN_DURATION_MS = 6000;
 export const MAX_DURATION_MS = 45000;
 
@@ -55,6 +70,7 @@ export function roundDurationMs(
   speed: SpeedSetting,
   roundIndex: number,
 ): number {
+  if (speed === 'still') return UNLIMITED_DURATION;
   const chars = content.question.length + content.answers.reduce((sum, a) => sum + a.length, 0);
   const reading = (chars / READING_CHARS_PER_SECOND) * 1000;
   const acceleration = Math.max(0.75, 1 - 0.02 * Math.max(0, roundIndex));
@@ -67,7 +83,7 @@ export function roundDurationMs(
 /** Punktabzug pro ausdrücklich abgeschickter falscher Eingabe (Punktestand nie unter 0). */
 export const TYPING_WRONG_PENALTY = 10;
 /** Grund-Fallzeit eines Meteoriten im Tippmodus (Tippen braucht mehr Zeit als Antippen). */
-export const TYPING_BASE_DURATION_MS: Record<SpeedSetting, number> = { slow: 24000, normal: 17000, fast: 11000 };
+export const TYPING_BASE_DURATION_MS: Record<SpeedSetting, number> = { slow: 24000, normal: 17000, fast: 11000, still: UNLIMITED_DURATION };
 export const TYPING_MIN_DURATION_MS = 8000;
 export const TYPING_MAX_DURATION_MS = 60000;
 /** Tippgeschwindigkeit, mit der die Länge der Lösung eingerechnet wird. */
@@ -78,6 +94,7 @@ export function typingDurationMs(
   speed: SpeedSetting,
   roundIndex: number,
 ): number {
+  if (speed === 'still') return UNLIMITED_DURATION;
   const reading = (content.question.length / READING_CHARS_PER_SECOND) * 1000;
   const typing = (content.solution.length / TYPING_CHARS_PER_SECOND) * 1000;
   const acceleration = Math.max(0.75, 1 - 0.02 * Math.max(0, roundIndex));

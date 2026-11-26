@@ -2,7 +2,7 @@ import type { RandomFn } from '../lib/random.ts';
 import { acceptedSolutions, isTypedAnswerCorrect, normalizeAnswer } from './answerCheck.ts';
 import type { GameQuestion } from './game.ts';
 import { ShuffledQueue } from './questionQueue.ts';
-import { pointsForAnswer, TYPING_WRONG_PENALTY, typingDurationMs } from './scoring.ts';
+import { pointsForAnswer, remainingFraction, TYPING_WRONG_PENALTY, typingDurationMs } from './scoring.ts';
 import type { GameMode, SpeedSetting } from './types.ts';
 
 /**
@@ -146,7 +146,7 @@ export class TypingController {
       const breakdown = pointsForAnswer({
         correct: true,
         difficulty: round.question.difficulty,
-        remainingFraction: 1 - responseMs / round.durationMs,
+        remainingFraction: remainingFraction(responseMs, round.durationMs),
         streak: this.streak,
       });
       this.score += breakdown.points;

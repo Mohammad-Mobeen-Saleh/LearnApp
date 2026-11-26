@@ -1,5 +1,5 @@
 import { shuffle, type RandomFn } from '../lib/random.ts';
-import { pointsForAnswer, roundDurationMs } from './scoring.ts';
+import { pointsForAnswer, remainingFraction, roundDurationMs } from './scoring.ts';
 import { ShuffledQueue } from './questionQueue.ts';
 import type { AnswerOutcome, GameMode, Question, SpeedSetting } from './types.ts';
 
@@ -187,7 +187,7 @@ export class GameController {
   /** Die Meteoriten haben den Schutzschild erreicht. */
   timeout(elapsedMs?: number): RoundResult {
     const round = this.requirePlaying();
-    return this.resolve('timeout', null, elapsedMs ?? round.durationMs, round);
+    return this.resolve('timeout', null, elapsedMs ?? (Number.isFinite(round.durationMs) ? round.durationMs : 0), round);
   }
 
   private requirePlaying(): Round {
@@ -207,7 +207,7 @@ export class GameController {
       const breakdown = pointsForAnswer({
         correct: true,
         difficulty: round.question.difficulty,
-        remainingFraction: 1 - responseMs / round.durationMs,
+        remainingFraction: remainingFraction(responseMs, round.durationMs),
         streak: this.streak,
       });
       points = breakdown.points;

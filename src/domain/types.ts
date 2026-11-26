@@ -44,7 +44,8 @@ export interface Question extends SyncFields, QuestionContent {
   deckId: string;
 }
 
-export type SpeedSetting = 'slow' | 'normal' | 'fast';
+/** 'still' = Stillstand: Meteoriten bewegen sich nicht, unbegrenzte Zeit */
+export type SpeedSetting = 'still' | 'slow' | 'normal' | 'fast';
 
 export interface SettingsContent {
   playerName: string;
@@ -120,7 +121,12 @@ export interface DraftQuestion extends QuestionContent {
 }
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = { 1: 'leicht', 2: 'mittel', 3: 'schwer' };
-export const SPEED_LABELS: Record<SpeedSetting, string> = { slow: 'Gemütlich', normal: 'Normal', fast: 'Schnell' };
+export const SPEED_LABELS: Record<SpeedSetting, string> = {
+  slow: 'Gemütlich',
+  normal: 'Normal',
+  fast: 'Schnell',
+  still: 'Stillstand (unbegrenzte Zeit)',
+};
 export const ANSWER_LETTERS = ['A', 'B', 'C'] as const;
 
 /** Feste ID des Einstellungs-Datensatzes (pro Benutzerkonto genau einer). */

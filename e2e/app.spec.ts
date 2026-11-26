@@ -143,6 +143,42 @@ test.describe('Tippmodus', () => {
   });
 });
 
+test.describe('Tippmodus ohne Feuer-Button', () => {
+  test('kein Button, Abschicken mit Enter, kein Abzug pro Tastendruck', async ({ page }) => {
+    await startGame(page, 'Tippmodus');
+    await expect(page.getByRole('button', { name: /Feuer|Antwort abschicken/ })).toHaveCount(0);
+    const input = page.getByLabel('Deine Antwort');
+    await expect(input).toHaveAttribute('enterkeyhint', 'send');
+    const score = async () => Number((await page.locator('.hud-score strong').textContent())?.replace(/\D+/g, '') || '0');
+    const before = await score();
+    await input.pressSequentially('xyzfalsch');
+    expect(await score()).toBe(before);
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.typing-feedback.wrong')).toBeVisible();
+    await expect(input).toBeFocused();
+  });
+});
+
+test.describe('Geschwindigkeit «Stillstand»', () => {
+  for (const type of ['Abwehrmodus', 'Tippmodus'] as const) {
+    test(`${type}: Meteoriten bleiben stehen, kein Einschlag`, async ({ page }) => {
+      await ensureTestDeck(page);
+      await page.goto('/#/settings');
+      await page.getByLabel(/Tempo der Meteoriten/).selectOption('still');
+      await startGame(page, type);
+      await expect(page.locator('.still-hint')).toHaveCount(0); // Hinweis nur im Startfenster
+      await page.waitForTimeout(12_000); // länger als die schnellste Flugzeit
+      await expect(page.locator('.results')).toHaveCount(0);
+      if (await hook(page)) {
+        const d = await page.evaluate(() => (window as unknown as { __meteorDefense: { controller(): { current: { durationMs: number } } } }).__meteorDefense.controller().current.durationMs);
+        expect(d).toBe(Infinity);
+      }
+      await page.goto('/#/settings');
+      await page.getByLabel(/Tempo der Meteoriten/).selectOption('normal');
+    });
+  }
+});
+
 test.describe('Lernpaket bearbeiten', () => {
   test('Fokus bleibt beim Tippen im Namens- und Beschreibungsfeld', async ({ page }) => {
     await ensureTestDeck(page);

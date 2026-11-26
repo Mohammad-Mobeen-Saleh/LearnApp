@@ -56,7 +56,7 @@ function syncMeta(row: Row) {
 
 export function sanitizeSettings(data: unknown): SettingsContent {
   const d = (data && typeof data === 'object' ? data : {}) as Record<string, unknown>;
-  const speed = d.speed === 'slow' || d.speed === 'fast' || d.speed === 'normal' ? d.speed : DEFAULT_SETTINGS.speed;
+  const speed = d.speed === 'slow' || d.speed === 'fast' || d.speed === 'normal' || d.speed === 'still' ? d.speed : DEFAULT_SETTINGS.speed;
   const volume = typeof d.volume === 'number' && d.volume >= 0 && d.volume <= 1 ? d.volume : DEFAULT_SETTINGS.volume;
   const qpg = typeof d.questionsPerGame === 'number' && d.questionsPerGame >= 0 && d.questionsPerGame <= 500 ? Math.round(d.questionsPerGame) : DEFAULT_SETTINGS.questionsPerGame;
   return {
