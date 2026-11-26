@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GameQuestion } from '../domain/game.ts';
 import { TypingController, type TypingSummary } from '../domain/typing.ts';
+import { isTypedAnswerCorrect } from '../domain/answerCheck.ts';
 import { DIFFICULTY_LABELS, type GameMode, type GameType, type Settings } from '../domain/types.ts';
 import { formatNumber, formatPercent } from '../lib/text.ts';
 import { Icon } from '../ui/Icon.tsx';
 import { GameCanvas } from './GameCanvas.tsx';
-import { PausePanel, ReadyPanel, ResultsPanel, ScorePop, useAutoPause, useGameRecorder } from './GameUi.tsx';
+import { BidiText, PausePanel, ReadyPanel, ResultsPanel, ScorePop, useAutoPause, useGameRecorder } from './GameUi.tsx';
 import { GameBridge, type SceneRound } from './MeteorScene.ts';
 import { SoundFx } from './sfx.ts';
 
 /**
- * Tippmodus: Ein Meteorit fällt, der Spieler tippt die Antwort ein (Enter oder «Feuer»).
+ * Tippmodus: Ein Meteorit fällt, der Spieler tippt die Antwort ein und schickt sie mit Enter
+ * (Windows) bzw. der Bestätigungstaste der Bildschirmtastatur (iPhone) ab. Eine vollständig
+ * richtig eingetippte Antwort wird schon beim Tippen als Treffer erkannt.
  * Richtig → Abschuss, Punkte, nächster Meteorit sofort. Falsch → −10 Punkte, Meteorit fällt weiter.
  * Einschlag im Schutzschild → Game Over.
  */
@@ -173,13 +176,14 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
     setFeedback(null);
     bridge.clear();
     inputRef.current?.blur();
-    sfx.play(s.reason === 'completed' ? 'win' : 'gameover');
+    sfx.play(s.reason === 'completed' || s.reason === 'quit' ? 'win' : 'gameover');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bridge, recorder, sfx, onScore]);
   finishGameRef.current = finishGame;
 
   /**
-   * Eingabe prüfen. Wird nur durch ausdrückliches Abschicken (Enter/Button) ausgelöst.
+   * Eingabe prüfen. Wird durch ausdrückliches Abschicken (Enter / Bestätigungstaste) ausgelöst –
+   * oder automatisch, sobald die Eingabe eine richtige Lösung ist (dann nie mit Punktabzug).
    * Gelesen und geleert wird direkt im Eingabefeld, damit eine Eingabe nie doppelt verarbeitet wird.
    */
   const submit = useCallback(
@@ -211,6 +215,21 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
       focusInput();
     },
     [bridge, focusInput, recorder, showFeedback],
+  );
+
+  /**
+   * Automatische Treffererkennung beim Tippen: nur wenn die Eingabe exakt einer gültigen Lösung
+   * entspricht. Falsche Zwischenstände werden nie gewertet – Punkte werden ausschliesslich beim
+   * ausdrücklichen Abschicken abgezogen.
+   */
+  const checkWhileTyping = useCallback(
+    (value: string, composing: boolean) => {
+      if (composing || overlayRef.current !== 'none') return;
+      const c = controllerRef.current;
+      if (c.phase !== 'playing' || !c.current) return;
+      if (isTypedAnswerCorrect(value, c.current.question)) submit(value);
+    },
+    [submit],
   );
 
   // Nur im Entwicklungsmodus: Zugriff für automatisierte Tests (wird im Produktionsbuild entfernt)
@@ -271,11 +290,18 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
     const c = controllerRef.current;
     if (c.phase !== 'over' && c.answeredRounds > 0) {
       c.quit();
+      if (settings.speed === 'still') {
+        // Stillstand hat kein Zeitlimit: Beenden zeigt das Ergebnis statt direkt zum Dashboard zu wechseln
+        sfx.resume();
+        bridge.resume();
+        finishGameRef.current();
+        return;
+      }
       recorder.recordSession(toSession(c.summary()));
     }
     onExit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onExit, recorder]);
+  }, [onExit, recorder, settings.speed, bridge, sfx]);
 
   // Tastatur: Esc pausiert/setzt fort (auch während im Eingabefeld getippt wird), Enter startet
   useEffect(() => {
@@ -349,7 +375,9 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
               {question.category ? <span>· {question.category}</span> : null}
               <span>· {DIFFICULTY_LABELS[question.difficulty]}</span>
             </div>
-            <h1 className={questionLength > 160 ? 'q-long' : questionLength > 80 ? 'q-medium' : undefined}>{question.question}</h1>
+            <h1 className={questionLength > 160 ? 'q-long' : questionLength > 80 ? 'q-medium' : undefined}>
+              <BidiText text={question.question} />
+            </h1>
           </>
         ) : (
           <h1>{title}</h1>
@@ -367,7 +395,7 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
         <GameCanvas bridge={bridge} />
 
         {overlay === 'ready' ? (
-          <ReadyPanel gameType="typing" onChangeType={onChangeType} onStart={start} onExit={onExit} questionCount={questions.length} repeat={mode === 'repeat'} />
+          <ReadyPanel gameType="typing" onChangeType={onChangeType} onStart={start} onExit={onExit} questionCount={questions.length} repeat={mode === 'repeat'} unlimited={settings.speed === 'still'} />
         ) : null}
 
         {overlay === 'paused' ? (
@@ -376,7 +404,7 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
 
         {overlay === 'results' && summary ? (
           <ResultsPanel
-            heading={summary.reason === 'completed' ? 'Geschafft – die Erde ist sicher!' : 'Game Over'}
+            heading={summary.reason === 'completed' ? 'Geschafft – die Erde ist sicher!' : summary.reason === 'quit' ? 'Runde beendet' : 'Game Over'}
             reasonText={summary.reason === 'impact' ? 'Der Meteorit hat den Schutzschild erreicht.' : summary.reason === 'completed' ? 'Alle Fragen der Wiederholung gelöst.' : null}
             decisive={summary.missedQuestion}
             score={summary.score}
@@ -400,6 +428,7 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
 
       <form
         className={overlay === 'results' ? 'typing-bar hidden' : 'typing-bar'}
+        // Rückfall, falls ein Browser das Abschicken nicht als Enter-Taste meldet
         onSubmit={(e) => {
           e.preventDefault();
           submit();
@@ -412,6 +441,7 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
             className="typing-input"
             type="text"
             name="answer"
+            dir="auto"
             aria-label="Deine Antwort"
             placeholder={playing ? 'Antwort eintippen …' : 'Antwort'}
             autoComplete="off"
@@ -420,22 +450,18 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
             spellCheck={false}
             enterKeyHint="send"
             maxLength={500}
+            disabled={overlay === 'results'}
             onKeyDown={(e) => {
-              // gedrückt gehaltene Enter-Taste oder Eingabe während der Wortbildung (IME) nicht abschicken
-              if (e.key === 'Enter' && (e.repeat || e.nativeEvent.isComposing)) e.preventDefault();
+              if (e.key !== 'Enter') return;
+              // Formular nicht zusätzlich abschicken (keine Doppelverarbeitung, iPhone-Tastatur bleibt offen)
+              e.preventDefault();
+              // gedrückt gehaltene Taste oder Wortbildung (IME) nicht als Antwort werten
+              if (e.repeat || e.nativeEvent.isComposing) return;
+              submit();
             }}
+            onChange={(e) => checkWhileTyping(e.target.value, (e.nativeEvent as InputEvent).isComposing === true)}
+            onCompositionEnd={() => checkWhileTyping(inputRef.current?.value ?? '', false)}
           />
-          <button
-            type="submit"
-            className="btn btn-primary typing-submit"
-            aria-label="Antwort abschicken"
-            disabled={!playing}
-            // Klick auf den Button darf den Fokus nicht vom Eingabefeld nehmen
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            <Icon name="play" size={18} />
-            <span>Feuer</span>
-          </button>
         </div>
         <p className={feedback ? `typing-feedback ${feedback.tone}` : 'typing-feedback'} role="status" aria-live="polite">
           {feedback?.text ?? '\u00a0'}

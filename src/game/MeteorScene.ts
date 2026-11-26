@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import type { SoundFx } from './sfx.ts';
+import { AnswerLabel, type AnswerLabelTone } from './answerLabel.ts';
 
 /**
  * Darstellung des Meteoritenschwarms (Phaser 3).
@@ -13,6 +14,7 @@ import type { SoundFx } from './sfx.ts';
 export interface SceneRound {
   /** Abwehrmodus: drei Antworttexte; Tippmodus: leer (ein Meteorit ohne Beschriftung) */
   answers: string[];
+  /** Infinity = Geschwindigkeit «Stillstand»: Meteoriten bleiben stehen, keine Zeitbegrenzung */
   durationMs: number;
   roundNumber: number;
   kind?: 'choice' | 'typing';
@@ -34,6 +36,8 @@ export class GameBridge {
   readonly sfx: SoundFx;
   reduceMotion: boolean;
   showKeyHints: boolean;
+  /** HTML-Ebene über der Canvas für die Antwortbeschriftungen (von GameCanvas gesetzt) */
+  labelLayer: HTMLElement | null = null;
 
   constructor(callbacks: SceneCallbacks, sfx: SoundFx, options: { pixelRatio: number; reduceMotion: boolean; showKeyHints: boolean }) {
     this.callbacks = callbacks;
@@ -104,19 +108,16 @@ const COLORS = {
   red: 0xf87171,
   amber: 0xfbbf24,
   white: 0xffffff,
-  labelFill: 0x10173f,
 };
-const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
-type LabelTone = 'normal' | 'hover' | 'correct' | 'wrong';
+type LabelTone = AnswerLabelTone;
 
 interface MeteorView {
   slot: number;
   rock: Phaser.GameObjects.Image;
   glow: Phaser.GameObjects.Image;
-  labelBg: Phaser.GameObjects.Graphics;
-  label: Phaser.GameObjects.Text;
-  hint: Phaser.GameObjects.Text | null;
+  /** HTML-Beschriftung (null im Tippmodus) */
+  label: AnswerLabel | null;
   x: number;
   y: number;
   y0: number;
@@ -182,8 +183,12 @@ export class MeteorScene extends Phaser.Scene {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => this.onPointerDown(pointer));
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => this.onPointerMove(pointer));
     this.scale.on('resize', () => this.layout());
-    this.events.once('shutdown', () => this.bridge.detach(this));
-    this.events.once('destroy', () => this.bridge.detach(this));
+    const cleanup = () => {
+      for (const m of this.meteors) m.label?.destroy();
+      this.bridge.detach(this);
+    };
+    this.events.once('shutdown', cleanup);
+    this.events.once('destroy', cleanup);
     this.bridge.attach(this);
   }
 
@@ -346,7 +351,7 @@ export class MeteorScene extends Phaser.Scene {
     this.timerBar.setPosition(0, 0).setSize(this.w, 5 * s);
     for (const m of this.meteors) this.layoutMeteor(m);
     if (this.state === 'flying' && this.round) {
-      const p = Math.min(1, this.elapsed / this.round.durationMs);
+      const p = this.progress();
       for (const m of this.meteors) if (m.alive) this.positionMeteor(m, p);
     }
   }
@@ -416,8 +421,6 @@ export class MeteorScene extends Phaser.Scene {
       const r = this.meteorR * 1.35;
       m.labelW = 0;
       m.labelH = 0;
-      m.label.setVisible(false);
-      m.labelBg.clear();
       m.rock.setDisplaySize(r * 2.3, r * 2.3);
       m.glow.setDisplaySize(r * 4.2, r * 4.2);
       m.x = this.w / 2;
@@ -427,17 +430,15 @@ export class MeteorScene extends Phaser.Scene {
     }
     const laneX = this.laneW * (m.slot + 0.5);
     const maxLabelW = Math.min(this.laneW - 10 * s, 320 * s);
-    const padX = 10 * s;
-    const padY = 8 * s;
-    let size = this.fontPx;
-    m.label.setFontSize(size);
-    m.label.setWordWrapWidth(maxLabelW - 2 * padX, true);
-    while (m.label.height + 2 * padY > this.maxLabelH && size > 11 * s) {
-      size -= s;
-      m.label.setFontSize(size);
+    if (m.label) {
+      // Messung im Browser (CSS-Pixel) → Spielkoordinaten
+      m.label.fit(this.fontPx / s, maxLabelW / s, this.maxLabelH / s);
+      m.labelW = m.label.width * s;
+      m.labelH = m.label.height * s;
+    } else {
+      m.labelW = 0;
+      m.labelH = 0;
     }
-    m.labelW = Math.min(maxLabelW, Math.max(m.label.width + 2 * padX, 70 * s));
-    m.labelH = m.label.height + 2 * padY;
     m.rock.setDisplaySize(this.meteorR * 2.3, this.meteorR * 2.3);
     m.glow.setDisplaySize(this.meteorR * 4.2, this.meteorR * 4.2);
     m.x = laneX;
@@ -448,18 +449,15 @@ export class MeteorScene extends Phaser.Scene {
   }
 
   private drawLabel(m: MeteorView, tone: LabelTone): void {
-    const s = this.s;
     m.tone = tone;
-    const g = m.labelBg;
-    g.clear();
-    if (m.labelH === 0) return;
-    const radius = Math.min(12 * s, m.labelH / 2, m.labelW / 2);
-    const fill = tone === 'correct' ? 0x064e3b : tone === 'wrong' ? 0x7f1d1d : COLORS.labelFill;
-    const stroke = tone === 'correct' ? COLORS.green : tone === 'wrong' ? COLORS.red : tone === 'hover' ? COLORS.cyan : COLORS.indigo;
-    g.fillStyle(fill, 0.94);
-    g.fillRoundedRect(-m.labelW / 2, 0, m.labelW, m.labelH, radius);
-    g.lineStyle((tone === 'normal' ? 1.5 : 2.5) * s, stroke, tone === 'normal' ? 0.7 : 1);
-    g.strokeRoundedRect(-m.labelW / 2, 0, m.labelW, m.labelH, radius);
+    m.label?.setTone(tone);
+  }
+
+  /** Beschriftung unter dem Meteoriten platzieren (Spielkoordinaten → CSS-Pixel). */
+  private placeLabel(m: MeteorView, x: number, y: number): void {
+    if (!m.label) return;
+    const s = this.s;
+    m.label.setPosition(x / s, (y + this.meteorR + 6 * s) / s);
   }
 
   private positionMeteor(m: MeteorView, p: number): void {
@@ -469,10 +467,7 @@ export class MeteorScene extends Phaser.Scene {
     const x = m.x + wobble;
     m.rock.setPosition(x, m.y);
     m.glow.setPosition(x, m.y - this.meteorR * 0.3);
-    const top = m.y + this.meteorR + 6 * s;
-    m.labelBg.setPosition(x, top);
-    m.label.setPosition(x, top + 8 * s);
-    m.hint?.setPosition(x - m.labelW / 2 + 2 * s, top - 2 * s);
+    this.placeLabel(m, x, m.y);
   }
 
   // ------------------------------------------------------------------ Runden
@@ -482,46 +477,21 @@ export class MeteorScene extends Phaser.Scene {
     this.round = round;
     this.elapsed = 0;
     this.trailClock = 0;
-    const s = this.s;
     const order = [0, 1, 2].sort(() => Math.random() - 0.5);
     const typing = round.kind === 'typing';
     const entries: { text: string; slot: number }[] = typing ? [{ text: '', slot: 1 }] : round.answers.map((text, slot) => ({ text, slot }));
     this.meteors = entries.map(({ text: answer, slot }) => {
       const glow = this.add.image(0, 0, 'md-glow').setTint(COLORS.violet).setAlpha(0.45).setDepth(10).setBlendMode(Phaser.BlendModes.ADD);
       const rock = this.add.image(0, 0, `md-rock-${order[slot]}`).setDepth(11);
-      const labelBg = this.add.graphics().setDepth(12);
-      const label = this.add
-        .text(0, 0, answer, {
-          fontFamily: FONT,
-          fontSize: `${this.fontPx}px`,
-          fontStyle: 'bold',
-          color: '#eef2ff',
-          align: 'center',
-          wordWrap: { width: 100, useAdvancedWrap: true },
-          lineSpacing: 2 * s,
-        })
-        .setOrigin(0.5, 0)
-        .setDepth(13);
-      const hint = this.bridge.showKeyHints && !typing
-        ? this.add
-            .text(0, 0, String(slot + 1), {
-              fontFamily: FONT,
-              fontSize: `${11 * s}px`,
-              fontStyle: 'bold',
-              color: '#0b1030',
-              backgroundColor: '#a5b4fc',
-              padding: { x: 5 * s, y: 1 * s },
-            })
-            .setOrigin(0, 0.5)
-            .setDepth(14)
-        : null;
+      const label =
+        !typing && this.bridge.labelLayer
+          ? new AnswerLabel(this.bridge.labelLayer, answer, { hint: this.bridge.showKeyHints ? String(slot + 1) : undefined })
+          : null;
       const view: MeteorView = {
         slot,
         rock,
         glow,
-        labelBg,
         label,
-        hint,
         x: 0,
         y: 0,
         y0: 0,
@@ -536,7 +506,7 @@ export class MeteorScene extends Phaser.Scene {
       };
       this.layoutMeteor(view);
       this.positionMeteor(view, 0);
-      for (const obj of [rock, glow, labelBg, label, ...(hint ? [hint] : [])]) {
+      for (const obj of [rock, glow, ...(label ? [label] : [])]) {
         obj.setAlpha(0);
         this.tweens.add({ targets: obj, alpha: obj === glow ? 0.45 : 1, duration: round.fastAdvance || typing ? 180 : 260, delay: typing ? 0 : slot * 70 });
       }
@@ -557,10 +527,14 @@ export class MeteorScene extends Phaser.Scene {
   }
 
   private destroyMeteor(m: MeteorView): void {
-    for (const obj of [m.rock, m.glow, m.labelBg, m.label, m.hint]) {
-      if (!obj) continue;
+    for (const obj of [m.rock, m.glow]) {
       this.tweens.killTweensOf(obj);
       obj.destroy();
+    }
+    if (m.label) {
+      this.tweens.killTweensOf(m.label);
+      m.label.destroy();
+      m.label = null;
     }
   }
 
@@ -586,7 +560,7 @@ export class MeteorScene extends Phaser.Scene {
     }
     if (this.paused || this.state !== 'flying' || !this.round) return;
     this.elapsed += dt;
-    const p = Math.min(1, this.elapsed / this.round.durationMs);
+    const p = this.progress();
     for (const m of this.meteors) {
       if (!m.alive) continue;
       this.positionMeteor(m, p);
@@ -598,10 +572,20 @@ export class MeteorScene extends Phaser.Scene {
       this.trailClock = 0;
       for (const m of this.meteors) if (m.alive) this.spawnTrail(m);
     }
-    if (p >= 1) this.handleTimeout();
+    if (p >= 1 && Number.isFinite(this.round.durationMs)) this.handleTimeout();
+  }
+
+  /** Flugfortschritt 0…1; bei «Stillstand» (unbegrenzte Zeit) immer 0. */
+  private progress(): number {
+    const d = this.round?.durationMs ?? Infinity;
+    if (!Number.isFinite(d) || d <= 0) return 0;
+    return Math.min(1, this.elapsed / d);
   }
 
   private updateTimer(remaining: number): void {
+    const unlimited = this.round !== null && !Number.isFinite(this.round.durationMs);
+    this.timerBar.setVisible(!unlimited);
+    this.timerBg.setVisible(!unlimited);
     const r = Math.max(0, Math.min(1, remaining));
     this.timerBar.scaleX = r;
     this.timerBar.setFillStyle(r > 0.5 ? COLORS.cyan : r > 0.25 ? COLORS.amber : COLORS.red, 0.95);
@@ -698,14 +682,10 @@ export class MeteorScene extends Phaser.Scene {
   }
 
   private positionMeteorAbsolute(m: MeteorView, y: number): void {
-    const s = this.s;
     m.y = y;
     m.rock.setPosition(m.x, y);
     m.glow.setPosition(m.x, y - this.meteorR * 0.3);
-    const top = y + this.meteorR + 6 * s;
-    m.labelBg.setPosition(m.x, top);
-    m.label.setPosition(m.x, top + 8 * s);
-    m.hint?.setPosition(m.x - m.labelW / 2 + 2 * s, top - 2 * s);
+    this.placeLabel(m, m.x, y);
   }
 
   roundElapsed(): number {
@@ -757,7 +737,8 @@ export class MeteorScene extends Phaser.Scene {
   private handleTimeout(): void {
     if (this.state !== 'flying') return;
     this.state = 'resolving';
-    const { correctSlot } = this.bridge.callbacks.onTimeout(this.round?.durationMs ?? this.elapsed);
+    const d = this.round?.durationMs ?? this.elapsed;
+    const { correctSlot } = this.bridge.callbacks.onTimeout(Number.isFinite(d) ? d : this.elapsed);
     for (const m of this.meteors) {
       this.impact(m.x, this.shieldYAt(m.x), false);
       if (m.slot === correctSlot) {
@@ -826,13 +807,13 @@ export class MeteorScene extends Phaser.Scene {
     }
     this.tweens.add({ targets: m.rock, alpha: 0, scale: m.rock.scale * 1.4, duration: 200 });
     this.tweens.add({ targets: m.glow, alpha: 0, duration: 200 });
-    this.tweens.add({ targets: [m.label, m.labelBg, ...(m.hint ? [m.hint] : [])], alpha: 0, y: `-=${14 * s}`, duration: 650, delay: 250 });
+    if (m.label) this.tweens.add({ targets: m.label, alpha: 0, y: '-=14', duration: 650, delay: 250 });
     this.shake(160, 0.004);
   }
 
   private dissolve(m: MeteorView): void {
     m.alive = false;
-    this.tweens.add({ targets: [m.rock, m.glow, m.label, m.labelBg, ...(m.hint ? [m.hint] : [])], alpha: 0.15, duration: 300 });
+    this.tweens.add({ targets: [m.rock, m.glow, ...(m.label ? [m.label] : [])], alpha: 0.15, duration: 300 });
   }
 
   private pulse(m: MeteorView): void {
