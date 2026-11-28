@@ -1,5 +1,7 @@
 import { useServices, useLiveQuery, useSettings, useSyncStatus, useAuthState } from '../app/ServicesContext.tsx';
-import { computeStats, filterByGameType } from '../domain/stats.ts';
+import { computeStats, filterByGame } from '../domain/stats.ts';
+import { GAMES, gameRoute } from '../games/registry.ts';
+import { useSelectedDeck } from '../games/selection.ts';
 import { SPEED_LABELS, type SpeedSetting } from '../domain/types.ts';
 import { formatNumber, formatPercent, plural } from '../lib/text.ts';
 import { Button, describeSync, LinkButton, Logo, ProgressBar, Stat } from '../ui/components.tsx';
@@ -18,12 +20,12 @@ export function DashboardPage() {
   const auth = useAuthState();
   const stats = useLiveQuery(async (s) => {
     const [decks, questions, sessions, answers] = await Promise.all([s.listDecks(), s.listAllQuestions(), s.listSessions(), s.listAnswers()]);
-    const typingBest = filterByGameType(sessions, answers, 'typing').sessions.reduce((m, x) => Math.max(m, x.score), 0);
-    const defenseBest = filterByGameType(sessions, answers, 'defense').sessions.reduce((m, x) => Math.max(m, x.score), 0);
-    return { ...computeStats({ decks, questions, sessions, answers }), defenseBest, typingBest };
+    const best = Object.fromEntries(GAMES.map((g) => [g.id, filterByGame(sessions, answers, g.id).sessions.reduce((m, x) => Math.max(m, x.score), 0)]));
+    return { ...computeStats({ decks, questions, sessions, answers }), best };
   }, []);
   const decks = useLiveQuery((s) => s.deckSummaries(), []);
   const view = describeSync(status);
+  const [selectedDeck] = useSelectedDeck();
 
   return (
     <div className="page dashboard">
@@ -31,11 +33,11 @@ export function DashboardPage() {
         <Logo size={104} className="hero-logo" />
         <div className="hero-text">
           <p className="eyebrow">{greeting(settings?.playerName ?? '')}</p>
-          <h1>Bereit zur Verteidigung?</h1>
-          <p className="muted">Schiesse den Meteoriten mit der richtigen Antwort ab, bevor er den Schutzschild erreicht.</p>
+          <h1>Willkommen in der LernArcade</h1>
+          <p className="muted">Lerne mit deinen eigenen Lernpaketen und spiele sie in verschiedenen Minispielen.</p>
           <div className="hero-actions">
-            <LinkButton to="/play" variant="primary" size="lg" icon="play">
-              Spielen
+            <LinkButton to="/games" variant="primary" size="lg" icon="play">
+              Spiele
             </LinkButton>
             <LinkButton to="/decks" icon="decks">
               Lernpakete
@@ -47,8 +49,21 @@ export function DashboardPage() {
         </div>
       </section>
 
+      <section className="game-strip" aria-label="Spiele">
+        {GAMES.map((g) => (
+          <a key={g.id} className={`card game-mini ${g.theme}`} href={`#${gameRoute(g.id, { deckId: selectedDeck })}`}>
+            <img src={g.logo} alt="" width={52} height={52} />
+            <span>
+              <strong>{g.name}</strong>
+              <span className="small">{g.tagline}</span>
+            </span>
+            <Icon name="chevron" />
+          </a>
+        ))}
+      </section>
+
       {stats && stats.repeatQuestionIds.length > 0 ? (
-        <a className="card repeat-card" href="#/play?mode=repeat">
+        <a className="card repeat-card" href="#/games">
           <Icon name="repeat" size={26} />
           <div>
             <strong>{plural(stats.repeatQuestionIds.length, 'Frage', 'Fragen')} zum Wiederholen</strong>
@@ -59,7 +74,7 @@ export function DashboardPage() {
       ) : null}
 
       <section className="stats-grid" aria-label="Lernstatistik">
-        <Stat icon="trophy" label="Highscore" value={formatNumber(stats?.highscore ?? 0)} hint={stats?.games ? `Abwehr ${formatNumber(stats.defenseBest)} · Tippen ${formatNumber(stats.typingBest)}` : 'noch kein Spiel'} />
+        <Stat icon="trophy" label="Highscore" value={formatNumber(stats?.highscore ?? 0)} hint={stats?.games ? GAMES.map((g) => `${g.name} ${formatNumber(stats.best[g.id] ?? 0)}`).join(' · ') : 'noch kein Spiel'} />
         <Stat icon="check" label="Erfolgsquote" value={formatPercent(stats?.successRate ?? null)} hint={`${stats?.correct ?? 0} richtig · ${stats?.wrong ?? 0} falsch`} />
         <Stat icon="play" label="Spielrunden" value={formatNumber(stats?.games ?? 0)} hint={`${stats?.rounds ?? 0} Fragen beantwortet`} />
         <Stat icon="decks" label="Lernpakete" value={decks?.length ?? 0} hint={`${decks?.reduce((n, d) => n + d.questionCount, 0) ?? 0} Fragen`} />

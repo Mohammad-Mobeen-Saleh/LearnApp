@@ -13,14 +13,17 @@ import { StatsPage } from './pages/StatsPage.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
 import { AccountPage } from './pages/AccountPage.tsx';
 import { ConflictsPage } from './pages/ConflictsPage.tsx';
+import { GamesPage } from './pages/GamesPage.tsx';
+import { navigate } from './app/router.ts';
 
-// Das Spiel (Phaser) wird erst beim Spielen geladen
+// Spiele werden erst beim Spielen geladen (Phaser bzw. Snake-Grafik)
 const PlayPage = lazy(() => import('./pages/PlayPage.tsx'));
+const SnakePage = lazy(() => import('./games/snake/SnakePage.tsx'));
 
 const NAV: { to: string; label: string; icon: IconName; match: (path: string) => boolean }[] = [
   { to: '/', label: 'Start', icon: 'home', match: (p) => p === '/' },
   { to: '/decks', label: 'Lernpakete', icon: 'decks', match: (p) => p.startsWith('/decks') || p === '/import' },
-  { to: '/play', label: 'Spielen', icon: 'play', match: (p) => p === '/play' },
+  { to: '/games', label: 'Spiele', icon: 'play', match: (p) => p === '/games' || p.startsWith('/games/') || p === '/play' },
   { to: '/stats', label: 'Statistik', icon: 'stats', match: (p) => p === '/stats' },
   { to: '/settings', label: 'Einstellungen', icon: 'settings', match: (p) => ['/settings', '/account', '/conflicts'].includes(p) },
 ];
@@ -38,7 +41,9 @@ export function App({ services }: { services: Services }) {
 function Shell() {
   const route = useRoute();
   const status = useSyncStatus();
-  const inGame = route.path === '/play' && (route.params.has('deck') || route.params.has('mode'));
+  // Vollbild, sobald ein Spiel mit Lernpaket läuft (Startfenster und Spiel)
+  const inGame =
+    (route.path === '/games/meteor-defense' || route.path === '/games/snake') && (route.params.has('deck') || route.params.has('mode'));
 
   useEffect(() => {
     document.body.classList.toggle('in-game', inGame);
@@ -95,7 +100,10 @@ function Page({ path, segments, params }: { path: string; segments: string[]; pa
   if (path === '/decks') return <DecksPage />;
   if (segments[0] === 'decks' && segments[1]) return <DeckDetailPage deckId={segments[1]} />;
   if (path === '/import') return <ImportPage targetDeckId={params.get('deck')} />;
-  if (path === '/play') return <PlayPage deckId={params.get('deck')} mode={params.get('mode')} />;
+  if (path === '/games') return <GamesPage deckParam={params.get('deck')} />;
+  if (path === '/games/meteor-defense') return <PlayPage deckId={params.get('deck')} mode={params.get('mode')} />;
+  if (path === '/games/snake') return <SnakePage deckId={params.get('deck')} mode={params.get('mode')} />;
+  if (path === '/play') return <LegacyPlayRedirect params={params} />;
   if (path === '/stats') return <StatsPage />;
   if (path === '/settings') return <SettingsPage />;
   if (path === '/account') return <AccountPage />;
@@ -108,6 +116,15 @@ function Page({ path, segments, params }: { path: string; segments: string[]; pa
       </a>
     </div>
   );
+}
+
+/** Alte Adresse /play (Lesezeichen, installierte App) führt zu Meteor Defense. */
+function LegacyPlayRedirect({ params }: { params: URLSearchParams }) {
+  useEffect(() => {
+    const q = params.toString();
+    navigate(`/games/meteor-defense${q ? `?${q}` : ''}`, { replace: true });
+  }, [params]);
+  return null;
 }
 
 function GlobalOverlays() {

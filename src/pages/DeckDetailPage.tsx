@@ -60,7 +60,7 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
         subtitle={deck.description || plural(questions?.length ?? 0, 'Frage', 'Fragen')}
         actions={
           <>
-            <Button variant="primary" icon="play" disabled={!questions?.length} onClick={() => navigate(`/play?deck=${deck.id}`)}>
+            <Button variant="primary" icon="play" disabled={!questions?.length} onClick={() => navigate(`/games?deck=${deck.id}`)}>
               Spielen
             </Button>
             <LinkButton to={`/import?deck=${deck.id}`} icon="import">

@@ -160,7 +160,7 @@ export function DecksPage() {
                 <ProgressBar value={mastered} tone="success" label="Lernfortschritt" />
               </a>
               <div className="deck-card-actions">
-                <Button variant="primary" size="sm" icon="play" disabled={questionCount === 0} onClick={() => navigate(`/play?deck=${deck.id}`)}>
+                <Button variant="primary" size="sm" icon="play" disabled={questionCount === 0} onClick={() => navigate(`/games?deck=${deck.id}`)}>
                   Spielen
                 </Button>
                 <Button size="sm" icon="edit" onClick={() => setEditing(deck)} ariaLabel={`«${deck.name}» bearbeiten`}>
