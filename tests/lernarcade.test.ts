@@ -4,7 +4,9 @@ import type { GameQuestion } from '../src/domain/game.ts';
 import { computeGameBreakdown, computeStats, filterByGame, gameOfType, sessionGameType } from '../src/domain/stats.ts';
 import { GAMES, gameRoute, getGame } from '../src/games/registry.ts';
 import { hasThreeValidAnswers } from '../src/games/questions.ts';
-import { sanitizeSettings } from '../src/sync/collections.ts';
+import { COLLECTIONS, sanitizeSettings } from '../src/sync/collections.ts';
+import { MemoryServer } from './helpers/memoryServer.ts';
+import { closeAllDevices, openDevice } from './helpers/devices.ts';
 import { seededRandom } from '../src/lib/random.ts';
 import type { AnswerEvent, Deck, GameSessionRecord, Question } from '../src/domain/types.ts';
 
@@ -233,5 +235,24 @@ describe('LernArcade: Spiele und gemeinsame Statistik', () => {
     expect(computeStats(input, { game: 'snake' })).toMatchObject({ games: 2, highscore: 700 });
     expect(computeStats(input, { game: 'meteor-defense' })).toMatchObject({ games: 2, highscore: 400 });
     expect(computeStats(input, { gameType: 'typing' })).toMatchObject({ games: 1 });
+  });
+});
+
+describe('LernArcade: Synchronisierung der Snake-Daten', () => {
+  it('Snake-Spiel und Snake-Einstellungen erscheinen auf dem zweiten Gerät', async () => {
+    const server = new MemoryServer();
+    const laptop = await openDevice('laptop', server.remote(), { seed: true });
+    const iphone = await openDevice('iphone', server.remote(), { seed: true });
+    const now = new Date().toISOString();
+    await laptop.store.recordSession({ deckId: null, mode: 'normal', gameType: 'snake', score: 640, rounds: 5, correctCount: 4, wrongCount: 1, maxStreak: 4, startedAt: now, endedAt: now });
+    await laptop.store.updateSettings({ snakeMapSize: 'small', snakeSpeed: 'fast' });
+    await laptop.sync.sync();
+    await iphone.sync.sync();
+    const sessions = await iphone.store.listSessions();
+    expect(sessions.map((x) => [x.gameType, x.score])).toEqual([['snake', 640]]);
+    expect(await iphone.store.getSettings()).toMatchObject({ snakeMapSize: 'small', snakeSpeed: 'fast' });
+    expect(server.rows('game_sessions')[0].game_type).toBe('snake');
+    expect(COLLECTIONS.game_sessions.fromServer({ ...server.rows('game_sessions')[0] }).gameType).toBe('snake');
+    closeAllDevices();
   });
 });

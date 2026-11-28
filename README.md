@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="public/icons/icon-192.png" width="112" height="112" alt="Meteor Defense Logo">
+  <img src="public/icons/icon-192.png" width="112" height="112" alt="LernArcade Logo">
 </p>
 
-<h1 align="center">Meteor Defense</h1>
+<h1 align="center">LernArcade</h1>
 
-<p align="center">Spielerische Lern-App: Schiesse den Meteoriten mit der richtigen Antwort ab, bevor er den Schutzschild erreicht.<br>
+<p align="center">Lernplattform mit Minispielen: Deine eigenen Lernpakete, gespielt in <b>Meteor Defense</b> und <b>Snake</b>.<br>
 Eine einzige Progressive Web App für iPhone und Windows-Laptop, mit gemeinsamer, konfliktsicherer Synchronisierung.</p>
 
 ---
@@ -24,6 +24,7 @@ Eine einzige Progressive Web App für iPhone und Windows-Laptop, mit gemeinsamer
 - [9. Installation auf dem iPhone](#9-installation-auf-dem-iphone)
 - [10. Installation als Desktop-App unter Windows](#10-installation-als-desktop-app-unter-windows)
 - [11. Datensicherung und Wiederherstellung](#11-datensicherung-und-wiederherstellung)
+- [Spiele der LernArcade](#spiele-der-lernarcade)
 - [Spielregeln und Punkte](#spielregeln-und-punkte)
 - [Logo und Icons](#logo-und-icons)
 - [Fehlerbehebung](#fehlerbehebung)
@@ -34,17 +35,18 @@ Eine einzige Progressive Web App für iPhone und Windows-Laptop, mit gemeinsamer
 
 | Bereich | Umsetzung |
 |---|---|
-| **Dashboard** | Logo, Begrüssung, «Spielen», «Lernpakete», «Fragen importieren», Lernstatistik, Highscore, Synchronisierungsstatus, Schnelleinstellungen |
+| **Dashboard** | LernArcade-Logo, Begrüssung, Schnellstart der Spiele, «Lernpakete», «Fragen importieren», Lernstatistik, Highscore je Spiel, Synchronisierungsstatus, Schnelleinstellungen |
+| **Spiele** | Spieleübersicht mit Spielkarten (Meteor Defense, Snake) und einer gemeinsamen Lernpaket-Auswahl, die beim Spielwechsel erhalten bleibt |
+| **Snake** | Schlange zur Frucht mit der richtigen von drei Antworten steuern; falsche Frucht = Bombe, Wand oder eigener Körper beenden das Spiel. Kleine/grosse Karte, drei Geschwindigkeiten, Pfeiltasten/WASD, Wischen und Steuerkreuz |
 | **Lernpakete** | erstellen, umbenennen, löschen (mit Bestätigung), importieren, als JSON exportieren, Anzeige «lokal gespeichert» / «synchron» |
 | **Fragenverwaltung** | alle Fragen eines Pakets ansehen, durchsuchen, hinzufügen, korrigieren, löschen |
 | **Abwehrmodus (Phaser 3)** | kontinuierlich: 3 Meteoriten mit je einer Antwort, richtige Antwort → Abschuss und sofort die nächste Frage; eine falsche Antwort beendet das Spiel. Endlos, das Paket wird automatisch neu gemischt. Tempo- und Serienbonus, Explosionen, Soundeffekte, Pause, Neustart, Ergebnis, per Touch, Maus und Tastatur (1/2/3, Esc) |
 | **Tippmodus** | ein Meteorit fällt, die Antwort wird eingetippt und mit Enter bzw. der Senden-Taste der iPhone-Tastatur abgeschickt; eine vollständig richtige Antwort wird schon beim Tippen erkannt. Richtig → Abschuss, Punkte, nächster Meteorit sofort; falsch → −10 Punkte, der Meteorit fällt weiter; Einschlag → Game Over. Gross-/Kleinschreibung und Leerzeichen werden ignoriert, optionale weitere gültige Antworten |
-| **Statistik** | richtig/falsch, Erfolgsquote, Spielrunden, Highscore, Fortschritt pro Fach, Fragen zum Wiederholen, letzte Spiele, gesamt oder getrennt nach Abwehr- und Tippmodus |
+| **Statistik** | richtig/falsch, Erfolgsquote, Spielrunden, Highscore, Fortschritt pro Fach, Fragen zum Wiederholen, letzte Spiele; für alle Spiele, je Spiel und je Meteor-Defense-Modus, dazu ein Vergleich der Spiele |
 | **Import** | Textformat und JSON, Vorschau, Fehlererkennung, Duplikatprüfung, «ergänzen» (Standard) oder ausdrücklich «ersetzen» |
 | **Synchronisierung** | Supabase (Auth + PostgreSQL), IndexedDB lokal, Warteschlange, Versionsprüfung, Konfliktzentrale, Tombstones, Offline-Betrieb |
 | **PWA** | Service Worker (App-Shell offline), Manifest, eigenes Logo als App-Symbol (iPhone, Windows, Browser-Tab), iOS-Startbildschirme |
 | **Datensicherung** | vollständiger JSON-Export und ergänzende Wiederherstellung |
-| **Demo** | Paket «Informatik-Grundlagen» mit 26 Fragen, sofort nach dem ersten Start spielbar |
 
 Ohne Supabase-Konfiguration läuft die App vollständig im **lokalen Modus** und zeigt deutlich an, dass die geräteübergreifende Synchronisierung noch nicht aktiv ist.
 
@@ -121,6 +123,7 @@ Was die Tests abdecken:
 | `tests/sql/migration.test.ts` | die **echte SQL-Migration** in PostgreSQL (PGlite): Row Level Security, Rechte, Versionsprüfung, Zähler, Idempotenz |
 | `tests/modes.test.ts` | Abwehrmodus kontinuierlich (sofort nächste Frage, Fehler = Game Over, neu mischen), Tippmodus (Normalisierung, −10 Punkte, kein doppelter Abzug, Einschlag), akzeptierte Antworten im Import, Statistik je Modus |
 | `tests/displayAndSpeed.test.ts` | Aufteilung arabisch/lateinischer Texte, Geschwindigkeit «Stillstand» in beiden Modi |
+| `tests/lernarcade.test.ts` | Snake (Feld, Geschwindigkeiten, Früchte, richtige/falsche Frucht, Wand, Körper, keine Umkehr), Spiel-Registry, Statistik je Spiel, Synchronisierung der Snake-Daten |
 | `tests/config.test.ts` | lokaler Modus ohne Konfiguration; geheime Schlüssel werden im Frontend abgelehnt |
 | `e2e/app.spec.ts` | keine überlappenden Bedienelemente / kein horizontales Überlaufen auf iPhone 13 Pro Max (hoch/quer), iPhone SE und Laptop; Spiel per Klick und Tastatur; Import; Manifest und Icons |
 
@@ -195,14 +198,15 @@ Anmeldung in der App: **Einstellungen → Anmelden / Registrieren**. Nach der Re
 
 ## 6. Datenbankmigrationen
 
-Die Datenbank ist in zwei Dateien beschrieben, die **in dieser Reihenfolge** ausgeführt werden:
+Die Datenbank ist in drei Dateien beschrieben, die **in dieser Reihenfolge** ausgeführt werden:
 
 1. **`supabase/migrations/20261123000000_meteor_defense_schema.sql`**: Tabellen, Indizes, Row Level Security, Rechte, Trigger und die RPC-Funktionen `push_changes` / `pull_changes`.
 2. **`supabase/migrations/20261124000000_typing_mode.sql`**: Tippmodus: Spalte `accepted_answers` (Fragen) und `game_type` (Spiele). Bestehende Daten bleiben unverändert.
+3. **`supabase/migrations/20261128000000_lernarcade_games.sql`**: LernArcade: erlaubt `game_type = 'snake'`. Keine neuen Tabellen oder Spalten; Snake-Einstellungen liegen im bestehenden Einstellungs-Datensatz.
 
-Beide Migrationen sind wiederholbar.
+Alle Migrationen sind wiederholbar. Wer Supabase bereits nutzt, führt nur die noch fehlende Datei aus. Ohne die dritte Migration werden Snake-Spiele lokal gespeichert, aber nicht in die Cloud übertragen (sie erscheinen in den Einstellungen unter «Nicht übertragbare Änderungen» und lassen sich nach der Migration erneut senden).
 
-**Variante A (SQL Editor, einfach):** Supabase-Dashboard → **SQL Editor** → *New query* → Inhalt der ersten Datei einfügen → **Run**, danach dasselbe mit der zweiten Datei. Erwartet: «Success. No rows returned».
+**Variante A (SQL Editor, einfach):** Supabase-Dashboard → **SQL Editor** → *New query* → Inhalt der ersten Datei einfügen → **Run**, danach dasselbe mit den weiteren Dateien. Erwartet: «Success. No rows returned».
 
 **Variante B (Supabase CLI):**
 ```powershell
@@ -252,7 +256,7 @@ Ziel: Laptop und iPhone sehen dieselben Lernpakete, Fragen, Einstellungen und Fo
 ```powershell
 git init
 git add .
-git commit -m "Meteor Defense"
+git commit -m "LernArcade"
 git remote add origin https://github.com/DEIN-NAME/meteor-defense.git
 git push -u origin main
 ```
@@ -282,8 +286,8 @@ Hinweise: Die App nutzt Hash-Routen (`#/decks`), daher sind keine Weiterleitungs
 ## 9. Installation auf dem iPhone
 
 1. Die veröffentlichte Adresse (HTTPS) in **Safari** öffnen.
-2. **Teilen**-Symbol → **«Zum Home-Bildschirm»** → Name «Meteor Defense» → *Hinzufügen*.
-3. Meteor Defense über das neue **App-Symbol** starten: Vollbild ohne Safari-Leiste, eigenes Logo und Startbildschirm.
+2. **Teilen**-Symbol → **«Zum Home-Bildschirm»** → Name «LernArcade» → *Hinzufügen*.
+3. LernArcade über das neue **App-Symbol** starten: Vollbild ohne Safari-Leiste, eigenes Logo und Startbildschirm.
 4. In der App **Einstellungen → Anmelden** und mit demselben Konto wie auf dem Laptop anmelden.
 
 Wichtig:
@@ -297,7 +301,7 @@ Wichtig:
 - **Microsoft Edge:** Adresse öffnen → Symbol «App verfügbar» in der Adressleiste (oder Menü **… → Apps → Diese Website als App installieren**).
 - **Google Chrome:** Installationssymbol rechts in der Adressleiste (oder Menü **⋮ → Streamen, speichern und teilen → Seite als App installieren**).
 - In der App gibt es ausserdem **Einstellungen → Als App installieren**, sobald der Browser die Installation anbietet.
-- Danach startet Meteor Defense aus dem Startmenü/der Taskleiste in einem eigenen Fenster mit eigenem Symbol.
+- Danach startet LernArcade aus dem Startmenü/der Taskleiste in einem eigenen Fenster mit eigenem Symbol.
 - **Firefox:** Die App ist im Browser vollständig nutzbar; die Installation als eigene App hängt von der Firefox-Version ab.
 
 ## 11. Datensicherung und Wiederherstellung
@@ -312,7 +316,33 @@ Wichtig:
 
 ---
 
+## Spiele der LernArcade
+
+Alle Spiele nutzen **dieselben Lernpakete, Fragen, Benutzerkonten und Spielereignisse**. Es entstehen keine Kopien von Fragen. Unter **Spiele** wählst du einmal ein Lernpaket; es bleibt beim Wechsel zwischen den Spielen erhalten. «Spielen» in einem Lernpaket führt direkt zur Spielauswahl.
+
+| Spiel | Adresse | Besonderheiten |
+|---|---|---|
+| Meteor Defense | `#/games/meteor-defense` | Weltraumdesign, Abwehr- und Tippmodus (siehe unten). Die alte Adresse `#/play` leitet hierher. |
+| Snake | `#/games/snake` | Eigenes grünes Design, Konfigurationsbildschirm mit Kartengrösse und Geschwindigkeit |
+
+**Snake**
+- Oben steht die Frage, auf dem Feld liegen drei Früchte (Apfel, Orange, Traube) mit je einer Antwort. Die richtige Antwort liegt jedes Mal zufällig auf einer anderen Frucht.
+- Richtige Frucht: Die Schlange wächst, du bekommst Punkte, die nächste Frage erscheint mit drei neuen Früchten.
+- Falsche Frucht: Sie wird zur Bombe und explodiert, das Spiel endet. Das Ergebnis zeigt die richtige Antwort.
+- Wand oder eigener Körper beenden das Spiel ebenfalls. Eine Umkehr um 180 Grad ist nicht möglich.
+- Die Schlange startet erst nach der ersten Richtungseingabe, so bleibt Zeit, die erste Frage zu lesen.
+- **Steuerung:** Windows mit Pfeiltasten oder WASD, Leertaste oder Esc für Pause. iPhone mit Wischen auf dem Spielfeld oder dem Steuerkreuz unter dem Feld. Die Seite scrollt dabei nicht.
+- **Kartengrösse:** klein (11 Felder auf der kurzen Seite) oder gross (17 Felder); die lange Seite passt sich dem Bildschirm an.
+- **Geschwindigkeit:** langsam (220 ms pro Schritt), mittel (155 ms), schnell (105 ms). Beides ist unabhängig wählbar und wird mit dem Konto synchronisiert.
+- **Punkte:** wie in Meteor Defense nach Schwierigkeit und Serie; der Bonus richtet sich nach dem kürzesten Weg zur richtigen Frucht.
+- Fragen ohne drei unterschiedliche Antworten werden übersprungen (mit Hinweis), es werden keine Antworten erfunden.
+- Antworten mit arabischer Schrift und Umschrift werden wie in Meteor Defense mit getrennten Schreibrichtungen dargestellt.
+
+**Ein weiteres Spiel ergänzen:** Eintrag in `src/games/registry.ts`, Seite unter `src/games/<spiel>/`, Route in `src/App.tsx` und eine neue Spielvariante für `game_sessions.game_type` (kleine Migration wie `20261128000000_lernarcade_games.sql`). Fragen laden über `src/games/questions.ts`, Runden und Antworten speichern über `useGameRecorder` aus `src/games/shared.tsx`.
+
 ## Spielregeln und Punkte
+
+Die folgenden Regeln gelten für **Meteor Defense**.
 
 Nach der Wahl eines Lernpakets wählst du den **Spielmodus** (der zuletzt gewählte wird gemerkt). Beide Modi nutzen dieselben Lernpakete, das Tempo aus den Einstellungen und denselben Fortschritt.
 
@@ -340,19 +370,21 @@ Nach der Wahl eines Lernpakets wählst du den **Spielmodus** (der zuletzt gewäh
 
 ## Logo und Icons
 
-Das Logo (eine Schutzschild-Kuppel, die einen Low-Poly-Meteoriten mit Leuchtspur abwehrt) ist in `scripts/generate-icons.mjs` als SVG definiert. Erzeugte Dateien:
+**LernArcade** (Plattform): vier leuchtende Spielkacheln für die verschiedenen Spiele. Definiert in `scripts/generate-icons.mjs`, Quellen in `branding/lernarcade/`.
 
 | Datei | Zweck |
 |---|---|
-| `branding/meteor-defense-logo.svg` | SVG-Quelldatei (abgerundet) |
-| `branding/meteor-defense-logo-square.svg`, `…-maskable.svg`, `…-mark.svg` | quadratisch, maskierbar, nur Motiv |
+| `branding/lernarcade/lernarcade-logo.svg`, `…-square.svg`, `…-maskable.svg`, `…-1024.png` | Quelldateien |
+| `public/icons/logo.svg` | Logo in der Kopfzeile und auf der Startseite |
 | `public/favicon.ico` (16/32/48), `favicon-16.png`, `favicon-32.png`, `favicon.svg` | Browser-Tab |
 | `public/apple-touch-icon.png` (180 × 180) | iPhone-Home-Bildschirm |
 | `public/icons/icon-192.png`, `icon-512.png` | PWA-Manifest (Windows, Android) |
 | `public/icons/maskable-192.png`, `maskable-512.png` | maskierbare Icons mit Sicherheitsabstand |
 | `public/splash/apple-splash-*.png` | iOS-Startbildschirme (hoch und quer) |
 
-Neu erzeugen nach Änderungen am Logo: `npx playwright install chromium` und `npm run icons`.
+**Spiellogos:** `public/games/meteor-defense/logo.svg` (das bisherige Meteor-Defense-Logo, unverändert; Quellen und Generator in `branding/meteor-defense/`) und `public/games/snake/logo.svg`.
+
+Neu erzeugen nach Änderungen: `npx playwright install chromium` und `npm run icons`.
 
 ## Fehlerbehebung
 
