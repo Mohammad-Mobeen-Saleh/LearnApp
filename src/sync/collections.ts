@@ -66,6 +66,8 @@ export function sanitizeSettings(data: unknown): SettingsContent {
     speed,
     questionsPerGame: qpg,
     reduceMotion: typeof d.reduceMotion === 'boolean' ? d.reduceMotion : DEFAULT_SETTINGS.reduceMotion,
+    snakeMapSize: d.snakeMapSize === 'small' || d.snakeMapSize === 'large' ? d.snakeMapSize : DEFAULT_SETTINGS.snakeMapSize,
+    snakeSpeed: d.snakeSpeed === 'slow' || d.snakeSpeed === 'medium' || d.snakeSpeed === 'fast' ? d.snakeSpeed : DEFAULT_SETTINGS.snakeSpeed,
   };
 }
 
@@ -126,7 +128,8 @@ const questions: CollectionSpec = {
 const userSettings: CollectionSpec = {
   name: 'user_settings',
   kind: 'mutable',
-  fields: ['playerName', 'soundEnabled', 'volume', 'speed', 'questionsPerGame', 'reduceMotion', 'deleted'],
+  fields: ['playerName', 'soundEnabled', 'volume', 'speed', 'questionsPerGame', 'reduceMotion', 'snakeMapSize', 'snakeSpeed', 'deleted'],
+  defaults: { snakeMapSize: DEFAULT_SETTINGS.snakeMapSize, snakeSpeed: DEFAULT_SETTINGS.snakeSpeed },
   toServer: (l) => {
     const s = l as unknown as Settings;
     return { data: sanitizeSettings(s), deleted: s.deleted, created_at: s.createdAt };
@@ -198,7 +201,7 @@ const gameSessions: CollectionSpec = {
       id: str(row.id).toLowerCase(),
       deckId: typeof row.deck_id === 'string' ? row.deck_id.toLowerCase() : null,
       mode: row.mode === 'repeat' ? 'repeat' : 'normal',
-      gameType: row.game_type === 'typing' ? 'typing' : 'defense',
+      gameType: row.game_type === 'typing' || row.game_type === 'snake' ? row.game_type : 'defense',
       score: num(row.score),
       rounds: num(row.rounds),
       correctCount: num(row.correct_count),

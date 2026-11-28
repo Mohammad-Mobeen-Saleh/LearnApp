@@ -1,5 +1,5 @@
 /* =====================================================================================
-   Meteor Defense – Design (Dark Mode, Dunkelblau/Violett/Cyan)
+   LernArcade: Design (Dark Mode). Meteor Defense nutzt Violett/Cyan, Snake Grün (siehe unten)
    ===================================================================================== */
 
 :root {
@@ -2275,6 +2275,45 @@ body.in-game .toasts {
   margin-bottom: 0;
 }
 
+.stats-subfilter {
+  max-width: 400px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.game-compare {
+  min-width: 520px;
+}
+
+.game-compare-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.game-compare-name img {
+  border-radius: 6px;
+}
+
+.compare-bars {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+}
+
 /* Tippmodus: Eingabeleiste unter dem Spielfeld */
 .game-typing {
   grid-template-rows: auto auto minmax(0, 1fr) auto;
@@ -2539,4 +2578,821 @@ body.in-game .toasts {
 .game-question h1 .bidi-text {
   /* Frage zentriert lassen, wie sie bisher ausgerichtet ist (links) */
   vertical-align: baseline;
+}
+
+/* =====================================================================================
+   LernArcade: Spieleübersicht
+   ===================================================================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.pick-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.25), var(--shadow);
+}
+
+.deck-select select {
+  max-width: 520px;
+}
+
+.game-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.game-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.game-card-head img {
+  border-radius: 18px;
+  flex: none;
+}
+
+.game-card-head h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.game-tagline {
+  margin: 2px 0 0;
+  font-weight: 650;
+}
+
+.game-description {
+  margin: 0;
+  color: var(--muted);
+}
+
+.game-facts {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 8px;
+  margin: 0;
+}
+
+.game-facts div {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(7, 11, 31, 0.45);
+  min-width: 0;
+}
+
+.game-facts dt {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.game-facts dd {
+  margin: 0;
+  font-weight: 750;
+}
+
+.game-play {
+  width: 100%;
+  margin-top: auto;
+}
+
+.game-card-meteor {
+  background:
+    radial-gradient(360px 180px at 100% 0%, rgba(124, 58, 237, 0.35), transparent 70%),
+    radial-gradient(260px 160px at 0% 100%, rgba(34, 211, 238, 0.14), transparent 70%),
+    var(--surface);
+}
+
+.game-card-meteor .game-tagline {
+  color: #a5f3fc;
+}
+
+.game-card-snake {
+  border-color: rgba(74, 222, 128, 0.35);
+  background:
+    radial-gradient(360px 180px at 100% 0%, rgba(34, 197, 94, 0.3), transparent 70%),
+    radial-gradient(260px 160px at 0% 100%, rgba(45, 212, 191, 0.16), transparent 70%),
+    #0a2a1d;
+}
+
+.game-card-snake .game-tagline {
+  color: #86efac;
+}
+
+.game-card-snake .game-facts div {
+  background: rgba(2, 30, 18, 0.6);
+}
+
+.game-card-snake .game-play {
+  background: linear-gradient(135deg, #16a34a, #14b8a6);
+  box-shadow: 0 10px 24px -12px rgba(34, 197, 94, 0.9);
+}
+
+.games-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.game-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+
+.game-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.game-mini img {
+  border-radius: 14px;
+  flex: none;
+}
+
+.game-mini > span {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.game-mini .small {
+  color: var(--muted);
+}
+
+.game-mini:hover {
+  border-color: var(--accent);
+}
+
+/* =====================================================================================
+   Snake: eigene visuelle Identität (dunkelgrün, leuchtend grün, türkis)
+   ===================================================================================== */
+
+.snake-screen {
+  --sn-bg: #03170e;
+  --sn-surface: rgba(6, 46, 28, 0.92);
+  --sn-border: rgba(74, 222, 128, 0.32);
+  --sn-text: #ecfdf5;
+  --sn-muted: #a7d8bf;
+  --sn-green: #4ade80;
+  --sn-teal: #2dd4bf;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  color: var(--sn-text);
+  background:
+    radial-gradient(900px 500px at 80% -10%, rgba(34, 197, 94, 0.18), transparent 60%),
+    radial-gradient(700px 400px at 0% 100%, rgba(45, 212, 191, 0.12), transparent 60%),
+    var(--sn-bg);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overflow: hidden;
+}
+
+.snake-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.snake-loading {
+  color: #86efac;
+}
+
+.snake-hud {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  min-width: 0;
+}
+
+.snake-hud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 14px;
+  border: 1px solid var(--sn-border);
+  background: var(--sn-surface);
+  color: var(--sn-text);
+  cursor: pointer;
+}
+
+.snake-hud-btn:disabled {
+  opacity: 0.4;
+}
+
+.snake-hud-item {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.snake-hud-item span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sn-muted);
+}
+
+.snake-hud-item strong {
+  position: relative;
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.snake-streak {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(250, 204, 21, 0.16);
+  color: #fef08a;
+  font-weight: 750;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.snake-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--sn-border);
+  color: #bbf7d0;
+  font-weight: 750;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.snake-badge img {
+  border-radius: 7px;
+}
+
+.snake-question {
+  position: relative;
+  padding: 2px 16px 10px;
+  min-width: 0;
+}
+
+.snake-question-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  font-size: 0.78rem;
+  color: var(--sn-muted);
+  margin-bottom: 4px;
+}
+
+.snake-question h1 {
+  margin: 0;
+  font-size: clamp(1.1rem, 0.9rem + 1.5vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.3;
+  color: #f0fdf4;
+  overflow-wrap: break-word;
+  max-height: 26dvh;
+  overflow-y: auto;
+}
+
+.snake-question h1.q-medium {
+  font-size: clamp(1rem, 0.85rem + 1.1vw, 1.45rem);
+}
+
+.snake-question h1.q-long {
+  font-size: clamp(0.95rem, 0.8rem + 0.8vw, 1.25rem);
+}
+
+.snake-flash {
+  position: absolute;
+  right: 16px;
+  bottom: 6px;
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 750;
+  animation: sn-flash 1.4s ease-out forwards;
+  pointer-events: none;
+}
+
+.snake-flash.good {
+  background: rgba(34, 197, 94, 0.22);
+  color: #bbf7d0;
+}
+
+.snake-flash.bad {
+  background: rgba(239, 68, 68, 0.22);
+  color: #fecaca;
+}
+
+@keyframes sn-flash {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  12%,
+  70% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.snake-stage {
+  /* nicht positioniert: Start-, Pause- und Ergebnisfenster decken den ganzen Snake-Bildschirm ab */
+  position: static;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+  padding: 4px;
+  touch-action: none; /* Wischen steuert die Schlange, die Seite scrollt nicht */
+  overscroll-behavior: contain;
+}
+
+.snake-board {
+  position: relative;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgba(94, 234, 212, 0.25),
+    0 0 40px -8px rgba(74, 222, 128, 0.35);
+  overflow: visible;
+}
+
+.snake-board canvas {
+  display: block;
+  border-radius: 14px;
+}
+
+.snake-board.shake {
+  animation: sn-shake 0.45s ease-in-out;
+}
+
+@keyframes sn-shake {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translate(-6px, 2px);
+  }
+  40% {
+    transform: translate(6px, -3px);
+  }
+  60% {
+    transform: translate(-4px, 3px);
+  }
+  80% {
+    transform: translate(3px, -1px);
+  }
+}
+
+.snake-start-hint {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(2, 30, 18, 0.9);
+  border: 1px solid rgba(94, 234, 212, 0.5);
+  color: #ccfbf1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none;
+  animation: sn-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes sn-pulse {
+  50% {
+    opacity: 0.65;
+  }
+}
+
+.snake-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Antwortbeschriftungen der Früchte (gleiche Text-Logik wie Meteor Defense, eigene Gestaltung) */
+.answer-label.snake-label {
+  border: 2px solid var(--label-accent, #4ade80);
+  background: rgba(2, 30, 18, 0.9);
+  color: #f0fdf4;
+  border-radius: 10px;
+  padding: 0.3em 0.6em;
+  min-width: 48px;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.8);
+  transition: opacity 0.15s ease;
+}
+
+.answer-label.snake-label::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  bottom: -5px;
+  background: var(--label-accent, #4ade80);
+  border-radius: 2px;
+  transform: rotate(45deg);
+  opacity: 0.9;
+}
+
+.answer-label.snake-label.below::after {
+  bottom: auto;
+  top: -5px;
+}
+
+.answer-label.snake-label.tone-correct {
+  border-color: #4ade80;
+  background: rgba(21, 128, 61, 0.92);
+}
+
+.answer-label.snake-label.tone-wrong {
+  border-color: #ef4444;
+  background: rgba(127, 29, 29, 0.92);
+}
+
+.snake-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  padding-top: max(12px, var(--safe-top)) !important;
+  padding-bottom: max(12px, var(--safe-bottom)) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(1, 15, 9, 0.6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.snake-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--sn-border);
+  background: linear-gradient(160deg, #0b3a26, #052417);
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.8);
+  text-align: center;
+  animation: md-pop 0.2s ease-out;
+}
+
+.snake-card h2 {
+  margin: 4px 0 6px;
+  font-size: 1.4rem;
+  color: #dcfce7;
+}
+
+.snake-card p {
+  margin: 0 0 10px;
+}
+
+.snake-card-logo {
+  border-radius: 16px;
+}
+
+.snake-muted {
+  color: var(--sn-muted);
+}
+
+.snake-note {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(250, 204, 21, 0.1);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  color: #fef08a;
+  font-size: 0.88rem;
+}
+
+.snake-choice {
+  border: none;
+  margin: 0 0 12px;
+  padding: 0;
+  text-align: left;
+}
+
+.snake-choice legend {
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sn-muted);
+}
+
+.snake-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(1, 15, 9, 0.6);
+  border: 1px solid var(--sn-border);
+}
+
+.snake-segmented.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.snake-segmented button {
+  min-height: 42px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--sn-muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.snake-segmented button.active {
+  background: linear-gradient(135deg, #22c55e, #14b8a6);
+  color: #022c22;
+}
+
+.snake-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.snake-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--sn-border);
+  background: rgba(6, 46, 28, 0.9);
+  color: var(--sn-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.snake-btn:hover {
+  border-color: var(--sn-teal);
+}
+
+.snake-btn.primary {
+  min-height: 52px;
+  border: none;
+  background: linear-gradient(135deg, #22c55e, #14b8a6);
+  color: #022c22;
+  font-size: 1.05rem;
+  box-shadow: 0 10px 24px -12px rgba(34, 197, 94, 0.9);
+}
+
+.snake-btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--sn-muted);
+}
+
+.snake-score {
+  font-size: 3rem;
+  font-weight: 850;
+  line-height: 1;
+  margin: 6px 0;
+  background: linear-gradient(90deg, #86efac, #5eead4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.snake-highscore {
+  color: var(--sn-muted);
+  font-weight: 650;
+}
+
+.snake-highscore.new {
+  color: #fef08a;
+}
+
+.snake-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.snake-facts div {
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: rgba(1, 15, 9, 0.5);
+}
+
+.snake-facts dt {
+  font-size: 0.72rem;
+  color: var(--sn-muted);
+}
+
+.snake-facts dd {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+.snake-solution {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.08);
+  overflow-wrap: break-word;
+}
+
+.snake-solution strong {
+  font-size: 1.15rem;
+}
+
+.snake-card.results.bomb {
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+/* Steuerkreuz (Touch-Geräte) */
+.snake-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 6px;
+  justify-content: center;
+  padding: 6px 12px 10px;
+  touch-action: none;
+}
+
+.snake-dpad.inactive {
+  visibility: hidden;
+}
+
+.snake-dpad button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  border: 1px solid var(--sn-border);
+  background: rgba(6, 46, 28, 0.92);
+  color: #bbf7d0;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.snake-dpad button:active {
+  background: rgba(34, 197, 94, 0.35);
+}
+
+.snake-dpad .dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.snake-dpad .dpad-up .icon {
+  transform: rotate(-90deg);
+}
+
+.snake-dpad .dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.snake-dpad .dpad-left .icon {
+  transform: rotate(180deg);
+}
+
+.snake-dpad .dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.snake-dpad .dpad-down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.snake-dpad .dpad-down .icon {
+  transform: rotate(90deg);
+}
+
+.snake-dpad .dpad-pause {
+  grid-column: 2;
+  grid-row: 2;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  justify-self: center;
+  align-self: center;
+}
+
+@media (max-width: 380px) {
+  .snake-badge {
+    display: none;
+  }
+
+  .snake-dpad {
+    grid-template-columns: repeat(3, 54px);
+    grid-template-rows: repeat(3, 46px);
+  }
+}
+
+/* iPhone quer: Frage und Steuerkreuz links, Spielfeld rechts */
+@media (orientation: landscape) and (max-height: 540px) {
+  .snake-screen {
+    grid-template-columns: minmax(210px, 32%) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .snake-hud {
+    grid-column: 1;
+    grid-row: 1;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .snake-badge {
+    display: none;
+  }
+
+  .snake-question {
+    grid-column: 1;
+    grid-row: 2;
+    overflow-y: auto;
+  }
+
+  .snake-question h1 {
+    max-height: none;
+    font-size: clamp(0.95rem, 0.7rem + 1.1vw, 1.25rem);
+  }
+
+  .snake-stage {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .snake-dpad {
+    grid-column: 1;
+    grid-row: 3;
+    grid-template-columns: repeat(3, 48px);
+    grid-template-rows: repeat(3, 40px);
+    padding-bottom: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snake-board.shake,
+  .snake-flash {
+    animation: none;
+  }
+}
+
+.game-deck-line {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
 }

@@ -27,7 +27,7 @@ export function AccountPage() {
             <h2>Lokaler Modus</h2>
           </div>
           <p>
-            Supabase ist noch nicht konfiguriert. Meteor Defense funktioniert vollständig auf diesem Gerät, die geräteübergreifende
+            Supabase ist noch nicht konfiguriert. LernArcade funktioniert vollständig auf diesem Gerät, die geräteübergreifende
             Synchronisierung ist aber <strong>noch nicht aktiv</strong>.
           </p>
           <p className="muted">

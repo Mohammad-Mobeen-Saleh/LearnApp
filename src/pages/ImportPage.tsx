@@ -175,7 +175,7 @@ export function ImportPage({ targetDeckId }: { targetDeckId: string | null }) {
               {done.skipped > 0 ? ` ${plural(done.skipped, 'Eintrag wurde', 'Einträge wurden')} nicht übernommen.` : ''}
             </p>
             <div className="row">
-              <Button variant="primary" icon="play" onClick={() => navigate(`/play?deck=${done.deckId}`)}>
+              <Button variant="primary" icon="play" onClick={() => navigate(`/games?deck=${done.deckId}`)}>
                 Jetzt spielen
               </Button>
               <LinkButton to={`/decks/${done.deckId}`} icon="decks">

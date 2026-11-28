@@ -9,7 +9,7 @@ import { collectHiddenUnderTabBar, collectLayoutIssues } from './layoutCheck.ts'
  *  - PWA-Manifest und eigene Icons
  */
 
-const ROUTES = ['/', '/decks', '/import', '/play', '/stats', '/settings', '/account', '/conflicts'];
+const ROUTES = ['/', '/decks', '/import', '/games', '/games/meteor-defense', '/games/snake', '/stats', '/settings', '/account', '/conflicts'];
 
 async function openApp(page: Page, route = '/') {
   await page.goto(`/#${route}`);
@@ -56,7 +56,7 @@ test.describe('Responsives Layout', () => {
     expect(await layoutIssues(page)).toEqual([]);
 
     await ensureTestDeck(page);
-    await openApp(page, '/play');
+    await openApp(page, '/games/meteor-defense');
     await page.locator('.pick-card:not(.pick-repeat)').first().click();
     await expect(page.locator('.ready-card')).toBeVisible();
     expect(await layoutIssues(page)).toEqual([]);
@@ -64,7 +64,7 @@ test.describe('Responsives Layout', () => {
     await page.waitForTimeout(500);
     expect(await layoutIssues(page)).toEqual([]);
     // Tippmodus
-    await openApp(page, '/play');
+    await openApp(page, '/games/meteor-defense');
     await page.locator('.pick-card:not(.pick-repeat)').first().click();
     await page.getByRole('radio', { name: 'Tippmodus' }).click();
     await page.getByRole('button', { name: 'Start' }).click();
@@ -75,7 +75,7 @@ test.describe('Responsives Layout', () => {
 
 async function startGame(page: Page, type: 'Abwehrmodus' | 'Tippmodus') {
   await ensureTestDeck(page);
-  await openApp(page, '/play');
+  await openApp(page, '/games/meteor-defense');
   await page.locator('.pick-card:not(.pick-repeat)').first().click();
   await page.getByRole('radio', { name: type }).click();
   await page.getByRole('button', { name: 'Start' }).click();
@@ -205,6 +205,89 @@ test.describe('Lernpaket bearbeiten', () => {
   });
 });
 
+test.describe('LernArcade', () => {
+  test('Navigation, Spieleübersicht und gemeinsame Lernpaket-Auswahl', async ({ page }) => {
+    await ensureTestDeck(page);
+    await openApp(page, '/');
+    await expect(page).toHaveTitle('LernArcade');
+    const nav = page.locator((page.viewportSize()?.width ?? 1000) >= 900 ? '.top-nav a' : '.tab-bar a');
+    await expect(nav).toHaveText([/Start/, /Lernpakete/, /Spiele/, /Statistik/, /Einstellungen|Mehr/]);
+    await openApp(page, '/games');
+    await expect(page.locator('.game-card h2')).toHaveText(['Meteor Defense', 'Snake']);
+    await page.getByLabel('Lernpaket für alle Spiele').selectOption({ index: 1 });
+    await page.locator('.game-card-snake .game-play').click();
+    await expect(page).toHaveURL(/#\/games\/snake\?deck=/);
+    await page.getByRole('button', { name: 'Zu Meteor Defense' }).click();
+    await expect(page).toHaveURL(/#\/games\/meteor-defense\?deck=/);
+    // alte Adresse /play führt zu Meteor Defense
+    await page.goto('/#/play');
+    await expect(page).toHaveURL(/#\/games\/meteor-defense/);
+  });
+
+  test('Spielen im Lernpaket führt zur Spielauswahl', async ({ page }) => {
+    await ensureTestDeck(page);
+    await openApp(page, '/decks');
+    await page.locator('.deck-card').first().getByRole('button', { name: 'Spielen' }).click();
+    await expect(page).toHaveURL(/#\/games\?deck=/);
+    await expect(page.locator('.game-card')).toHaveCount(2);
+  });
+});
+
+test.describe('Snake', () => {
+  async function startSnake(page: Page, size: 'Kleine Karte' | 'Grosse Karte', speed: 'Langsam' | 'Mittel' | 'Schnell') {
+    await ensureTestDeck(page);
+    await openApp(page, '/games/snake');
+    await page.locator('.pick-card:not(.pick-repeat)').first().click();
+    await page.getByRole('radio', { name: size }).click();
+    await page.getByRole('radio', { name: speed }).click();
+    await page.getByRole('button', { name: 'Start' }).click();
+    await expect(page.locator('.snake-label')).toHaveCount(3);
+  }
+
+  for (const [size, speed] of [['Kleine Karte', 'Schnell'], ['Grosse Karte', 'Langsam'], ['Grosse Karte', 'Mittel']] as const) {
+    test(`${size}, ${speed}: drei Früchte im Feld, Steuerung, Game Over`, async ({ page }) => {
+      await startSnake(page, size, speed);
+      expect(await layoutIssues(page)).toEqual([]);
+      const labelsInside = await page.evaluate(() => {
+        const b = document.querySelector('.snake-board')!.getBoundingClientRect();
+        return [...document.querySelectorAll('.snake-label')].every((l) => {
+          const r = l.getBoundingClientRect();
+          return r.left >= b.left - 1 && r.right <= b.right + 1 && r.top >= b.top - 1 && r.bottom <= b.bottom + 1;
+        });
+      });
+      expect(labelsInside).toBe(true);
+      // Tastatur (Windows) oder Steuerkreuz/Wischen (iPhone)
+      if ((await page.locator('.snake-dpad').count()) > 0) {
+        await page.locator('.dpad-up').dispatchEvent('pointerdown');
+      } else {
+        await page.keyboard.press('ArrowUp');
+      }
+      // ohne weitere Eingabe fährt die Schlange irgendwann in die Wand oder frisst eine Frucht
+      await expect(page.locator('.snake-card.results')).toBeVisible({ timeout: 30_000 });
+      await expect(page.locator('.snake-score')).toBeVisible();
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    });
+  }
+
+  test('Wischen auf dem Spielfeld steuert die Schlange', async ({ page }) => {
+    await startSnake(page, 'Grosse Karte', 'Langsam');
+    const box = (await page.locator('.snake-stage').boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.evaluate(
+      ([cx, cy]) => {
+        const st = document.querySelector('.snake-stage')!;
+        const o = (yy: number) => ({ pointerId: 3, pointerType: 'touch', clientX: cx, clientY: yy, bubbles: true });
+        st.dispatchEvent(new PointerEvent('pointerdown', o(cy)));
+        st.dispatchEvent(new PointerEvent('pointermove', o(cy - 50)));
+        st.dispatchEvent(new PointerEvent('pointerup', o(cy - 50)));
+      },
+      [x, y],
+    );
+    await expect(page.locator('.snake-start-hint')).toHaveCount(0);
+  });
+});
+
 test.describe('Fragenimport', () => {
   test('Textimport legt ein neues Lernpaket an', async ({ page }) => {
     await openApp(page, '/import');
@@ -228,7 +311,7 @@ test.describe('PWA und Logo', () => {
     const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
     expect(manifestHref).toBeTruthy();
     const manifest = await (await request.get(manifestHref!)).json();
-    expect(manifest.name).toBe('Meteor Defense');
+    expect(manifest.name).toBe('LernArcade');
     expect(manifest.display).toBe('standalone');
     const sizes = manifest.icons.map((i: { sizes: string }) => i.sizes);
     expect(sizes).toEqual(expect.arrayContaining(['192x192', '512x512']));

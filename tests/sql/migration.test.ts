@@ -119,4 +119,20 @@ describe.skipIf(!server)('Supabase-Migration (PostgreSQL via PGlite)', () => {
     });
     expect(results.map((r) => r.status)).toEqual(['applied', 'error', 'applied']);
   });
+
+  it('Spielvariante snake wird gespeichert, unbekannte Spiele werden abgelehnt', async () => {
+    const user = await server!.createUser();
+    const remote = server!.remoteFor(user);
+    const session = (game_type: string) => ({
+      collection: 'game_sessions' as const,
+      id: crypto.randomUUID(),
+      baseVersion: 0,
+      data: { deck_id: null, mode: 'normal', game_type, score: 120, rounds: 1, correct_count: 1, wrong_count: 0, max_streak: 1, started_at: new Date().toISOString(), ended_at: new Date().toISOString() },
+    });
+    const [ok, bad] = await remote.push({ deviceId: 'd', knownSeq: 0, changes: [session('snake'), session('tetris')] });
+    expect(ok.status).toBe('applied');
+    expect(bad.status).toBe('error');
+    const rows = await server!.rowsFor(user, 'game_sessions');
+    expect(rows.map((r) => r.game_type)).toEqual(['snake']);
+  });
 });

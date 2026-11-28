@@ -27,9 +27,11 @@ export class AnswerLabel {
   width = 0;
   height = 0;
 
-  constructor(layer: HTMLElement, text: string, options: { hint?: string } = {}) {
+  constructor(layer: HTMLElement, text: string, options: { hint?: string; className?: string; accent?: string } = {}) {
     const el = document.createElement('div');
-    el.className = 'answer-label tone-normal';
+    // Zusatzklasse für die Gestaltung eines Spiels (z. B. Snake); Meteor Defense bleibt unverändert
+    el.className = options.className ? `answer-label tone-normal ${options.className}` : 'answer-label tone-normal';
+    if (options.accent) el.style.setProperty('--label-accent', options.accent);
     el.setAttribute('aria-hidden', 'true');
     // Absatzrichtung LTR: Abschnitte stehen in Originalreihenfolge nebeneinander,
     // jeder Abschnitt hat seine eigene, isolierte Schreibrichtung.

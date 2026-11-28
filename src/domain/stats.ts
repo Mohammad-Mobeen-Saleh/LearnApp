@@ -1,4 +1,4 @@
-import type { AnswerEvent, AnswerOutcome, Deck, GameSessionRecord, GameType, Question } from './types.ts';
+import type { AnswerEvent, AnswerOutcome, Deck, GameId, GameSessionRecord, GameType, Question } from './types.ts';
 
 /**
  * Statistiken werden ausschliesslich aus unveränderlichen Spielereignissen berechnet.
@@ -72,7 +72,64 @@ export function computeQuestionProgress(answers: readonly AnswerEvent[]): Map<st
 }
 
 export function sessionGameType(s: Pick<GameSessionRecord, 'gameType'>): GameType {
-  return s.gameType === 'typing' ? 'typing' : 'defense';
+  return s.gameType === 'typing' || s.gameType === 'snake' ? s.gameType : 'defense';
+}
+
+/** Zu welchem Spiel gehört eine Variante? (Abwehr- und Tippmodus gehören zu Meteor Defense) */
+export function gameOfType(t: GameType): GameId {
+  return t === 'snake' ? 'snake' : 'meteor-defense';
+}
+
+export function sessionGame(s: Pick<GameSessionRecord, 'gameType'>): GameId {
+  return gameOfType(sessionGameType(s));
+}
+
+/** Spiele und Antworten auf ein Spiel (alle seine Varianten) beschränken. */
+export function filterByGame(
+  sessions: readonly GameSessionRecord[],
+  answers: readonly AnswerEvent[],
+  game: GameId,
+): { sessions: GameSessionRecord[]; answers: AnswerEvent[] } {
+  const gameBySession = new Map(sessions.map((s) => [s.id, sessionGame(s)]));
+  return {
+    sessions: sessions.filter((s) => sessionGame(s) === game),
+    answers: answers.filter((a) => (gameBySession.get(a.sessionId) ?? 'meteor-defense') === game),
+  };
+}
+
+export interface GameBreakdown {
+  game: GameId;
+  games: number;
+  rounds: number;
+  correct: number;
+  wrong: number;
+  successRate: number | null;
+  highscore: number;
+  totalScore: number;
+  lastPlayedAt: string | null;
+}
+
+/** Kennzahlen je Spiel für den Vergleich auf der Statistikseite. */
+export function computeGameBreakdown(
+  sessions: readonly GameSessionRecord[],
+  answers: readonly AnswerEvent[],
+  games: readonly GameId[],
+): GameBreakdown[] {
+  return games.map((game) => {
+    const f = filterByGame(sessions, answers, game);
+    const correct = f.answers.filter((a) => a.outcome === 'correct').length;
+    return {
+      game,
+      games: f.sessions.length,
+      rounds: f.answers.length,
+      correct,
+      wrong: f.answers.length - correct,
+      successRate: f.answers.length ? correct / f.answers.length : null,
+      highscore: f.sessions.reduce((m, s) => Math.max(m, s.score), 0),
+      totalScore: f.sessions.reduce((m, s) => m + s.score, 0),
+      lastPlayedAt: f.sessions.reduce<string | null>((m, s) => (m === null || s.endedAt > m ? s.endedAt : m), null),
+    };
+  });
 }
 
 /**
@@ -98,8 +155,11 @@ export function computeStats(
     sessions: readonly GameSessionRecord[];
     answers: readonly AnswerEvent[];
   },
-  options: { gameType?: GameType } = {},
+  options: { gameType?: GameType; game?: GameId } = {},
 ): StatsSummary {
+  if (options.game) {
+    input = { ...input, ...filterByGame(input.sessions, input.answers, options.game) };
+  }
   if (options.gameType) {
     const filtered = filterByGameType(input.sessions, input.answers, options.gameType);
     input = { ...input, ...filtered };
