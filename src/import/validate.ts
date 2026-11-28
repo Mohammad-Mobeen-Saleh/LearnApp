@@ -21,7 +21,7 @@ export function validateDraft(draft: Partial<DraftQuestion>, options: { skipStru
   const question = (draft.question ?? '').trim();
   if (!question) errors.push('Der Fragetext fehlt.');
   else if (question.length > LIMITS.question) errors.push(`Der Fragetext ist zu lang (max. ${LIMITS.question} Zeichen).`);
-  else if (question.length > LONG_QUESTION_WARNING) warnings.push('Sehr lange Frage – auf dem iPhone ist mehr Lesezeit nötig.');
+  else if (question.length > LONG_QUESTION_WARNING) warnings.push('Sehr lange Frage. Auf dem iPhone ist mehr Lesezeit nötig.');
 
   const answers = Array.isArray(draft.answers) ? draft.answers : [];
   if (answers.length !== 3) {

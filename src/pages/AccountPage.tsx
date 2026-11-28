@@ -77,7 +77,7 @@ export function AccountPage() {
           message: (
             <p>
               {result.pending} Änderung(en) konnten noch nicht in die Cloud übertragen werden (z. B. offline). Beim Abmelden werden die
-              lokalen Daten von diesem Gerät entfernt – diese Änderungen gingen verloren. Exportiere vorher eine Sicherung unter
+              lokalen Daten von diesem Gerät entfernt, und diese Änderungen gingen verloren. Exportiere vorher eine Sicherung unter
               Einstellungen → Datensicherung oder warte, bis wieder eine Verbindung besteht.
             </p>
           ),
@@ -127,7 +127,7 @@ export function AccountPage() {
       <div className="card">
         <p className="muted">
           Mit einem Konto stehen deine Lernpakete und dein Fortschritt auf allen Geräten zur Verfügung. Bereits lokal gespeicherte
-          Lernpakete werden beim ersten Anmelden mit dem Konto zusammengeführt – nichts wird überschrieben.
+          Lernpakete werden beim ersten Anmelden mit dem Konto zusammengeführt. Nichts wird überschrieben.
         </p>
         <form
           className="form"

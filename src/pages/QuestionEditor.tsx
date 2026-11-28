@@ -76,7 +76,7 @@ export function QuestionEditor({ deckId, question, onClose }: { deckId: string; 
           <textarea data-autofocus rows={3} maxLength={LIMITS.question} value={draft.question} onChange={(e) => setDraft({ ...draft, question: e.target.value })} />
         </label>
         <fieldset className="answers-editor">
-          <legend>Antworten – richtige Antwort auswählen</legend>
+          <legend>Antworten (richtige Antwort auswählen)</legend>
           {draft.answers.map((a, i) => (
             <div key={i} className={draft.correctIndex === i ? 'answer-row correct' : 'answer-row'}>
               <label className="answer-radio" title="Richtige Antwort">

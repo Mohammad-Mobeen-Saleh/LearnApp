@@ -68,29 +68,95 @@ export class AnswerLabel {
   }
 
   /**
-   * Passt die Schriftgrösse an: so gross wie möglich (höchstens `fontPx`), bis der Text
-   * innerhalb von `maxWidth` × `maxHeight` passt. Arabische Wörter werden nie mitten im Wort
-   * getrennt; Arabisch und Umschrift dürfen auf zwei Zeilen stehen.
+   * Wählt die Darstellung, die am besten lesbar ist, und misst sie explizit aus
+   * (die automatische Breitenberechnung des Browsers für umbrechende Zeilen ist unzuverlässig
+   * und hat dazu geführt, dass jedes Wort auf einer eigenen Zeile stand).
+   *
+   * Reihenfolge je Schriftgrösse (von `fontPx` abwärts):
+   *  1. alles auf einer Zeile
+   *  2. jeder Abschnitt auf einer eigenen Zeile (Arabisch oben, Umschrift darunter)
+   *  3. Umbruch zwischen Wörtern
+   * Zuerst mit höchstens zwei Zeilen und nur leicht kleinerer Schrift, danach mit bis zu drei
+   * Zeilen. Arabische Wörter werden nie getrennt.
    */
   fit(fontPx: number, maxWidth: number, maxHeight: number): void {
     const el = this.el;
-    el.style.maxWidth = `${Math.max(40, maxWidth)}px`;
-    let size = Math.max(LABEL_MIN_FONT_PX, fontPx);
-    for (;;) {
+    const limitW = Math.max(40, Math.floor(maxWidth));
+    const largest = Math.max(LABEL_MIN_FONT_PX, Math.round(fontPx));
+    const segments = el.querySelectorAll('.seg').length;
+    el.classList.remove('force-wrap');
+    el.style.maxWidth = '';
+
+    const measure = (size: number, layout: 'line' | 'stack' | 'wrap') => {
       el.style.fontSize = `${size}px`;
-      const tooWide = el.scrollWidth > el.clientWidth + 1;
-      const tooHigh = el.offsetHeight > maxHeight;
-      if ((!tooWide && !tooHigh) || size <= LABEL_MIN_FONT_PX) break;
-      size -= 1;
+      el.dataset.layout = layout;
+      el.style.width = layout === 'wrap' ? `${limitW}px` : 'max-content';
+      const rect = el.getBoundingClientRect();
+      return { w: rect.width, h: rect.height };
+    };
+    const accept = (layout: 'line' | 'stack' | 'wrap') => {
+      if (layout === 'wrap') this.tightenWidth(limitW);
+      const rect = el.getBoundingClientRect();
+      this.width = rect.width;
+      this.height = rect.height;
+    };
+
+    // Durchgang 1: höchstens zwei Zeilen, Schrift nur leicht verkleinern
+    // Durchgang 2: bis zu drei Zeilen (z. B. Arabisch + zweizeilige Umschrift) statt winziger Schrift
+    const passes: { rows: number; smallest: number }[] = [
+      { rows: 2, smallest: Math.max(LABEL_MIN_FONT_PX, Math.min(13, largest - 2)) },
+      { rows: 3, smallest: LABEL_MIN_FONT_PX },
+    ];
+    for (const pass of passes) {
+      for (let size = largest; size >= pass.smallest; size--) {
+        const line = measure(size, 'line');
+        if (line.w <= limitW && line.h <= maxHeight) return accept('line');
+        if (segments > 1 && segments <= pass.rows) {
+          const stack = measure(size, 'stack');
+          if (stack.w <= limitW && stack.h <= maxHeight) return accept('stack');
+        }
+        const wrap = measure(size, 'wrap');
+        if (this.rowCount(size) <= pass.rows && wrap.h <= maxHeight && el.scrollWidth <= el.clientWidth + 1) return accept('wrap');
+      }
     }
-    // Notlösung für extrem lange Einzelwörter: Umbruch innerhalb lateinischer Abschnitte erlauben
-    el.classList.toggle('force-wrap', el.scrollWidth > el.clientWidth + 1);
-    this.width = el.offsetWidth;
-    this.height = el.offsetHeight;
+    // Kleinste Schrift: beliebig viele Zeilen; sehr lange Einzelwörter (nur Lateinisch) notfalls trennen
+    measure(LABEL_MIN_FONT_PX, 'wrap');
+    if (el.scrollWidth > el.clientWidth + 1) el.classList.add('force-wrap');
+    accept('wrap');
+  }
+
+  /** Anzahl Textzeilen (Wörter mit ähnlicher vertikaler Mitte bilden eine Zeile). */
+  private rowCount(fontPx: number): number {
+    const centers = [...this.el.querySelectorAll('.word')]
+      .map((w) => {
+        const r = w.getBoundingClientRect();
+        return r.top + r.height / 2;
+      })
+      .sort((a, b) => a - b);
+    let rows = 0;
+    let last = -Infinity;
+    for (const c of centers) {
+      if (c - last > fontPx * 0.7) rows += 1;
+      last = c;
+    }
+    return Math.max(1, rows);
+  }
+
+  /** Nach dem Umbruch die Fläche auf die tatsächlich benötigte Breite verkleinern. */
+  private tightenWidth(limitW: number): void {
+    const el = this.el;
+    const words = [...el.querySelectorAll('.word')].map((w) => w.getBoundingClientRect());
+    if (!words.length) return;
+    const left = Math.min(...words.map((r) => r.left));
+    const right = Math.max(...words.map((r) => r.right));
+    const style = getComputedStyle(el);
+    const chrome = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+    const needed = Math.ceil(right - left + chrome + 2);
+    if (needed < limitW) el.style.width = `${needed}px`;
   }
 
   setTone(tone: AnswerLabelTone): void {
-    this.el.className = `answer-label tone-${tone}${this.el.classList.contains('force-wrap') ? ' force-wrap' : ''}`;
+    for (const t of ['normal', 'hover', 'correct', 'wrong']) this.el.classList.toggle(`tone-${t}`, t === tone);
   }
 
   // Eigenschaften mit Settern, damit Phaser-Tweens das Element direkt animieren können

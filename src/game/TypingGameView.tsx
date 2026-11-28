@@ -204,7 +204,7 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
           el.classList.add('shake');
         }
         if (result.penalty > 0) setPop({ id: Date.now(), value: -result.penalty });
-        showFeedback('wrong', result.penalty > 0 ? `Falsch – −${result.penalty} Punkte. Versuch es nochmal!` : 'Falsch – versuch es nochmal!');
+        showFeedback('wrong', result.penalty > 0 ? `Falsch, −${result.penalty} Punkte. Versuch es nochmal!` : 'Falsch. Versuch es nochmal!');
       } else {
         const q = c.current!.question;
         recorder.recordAnswer(q, result.firstTry ? 'correct' : 'wrong', result.points, result.responseMs);
@@ -404,7 +404,7 @@ export function TypingGameView({ questions, deckId, mode, title, settings, previ
 
         {overlay === 'results' && summary ? (
           <ResultsPanel
-            heading={summary.reason === 'completed' ? 'Geschafft – die Erde ist sicher!' : summary.reason === 'quit' ? 'Runde beendet' : 'Game Over'}
+            heading={summary.reason === 'completed' ? 'Geschafft! Die Erde ist sicher.' : summary.reason === 'quit' ? 'Runde beendet' : 'Game Over'}
             reasonText={summary.reason === 'impact' ? 'Der Meteorit hat den Schutzschild erreicht.' : summary.reason === 'completed' ? 'Alle Fragen der Wiederholung gelöst.' : null}
             decisive={summary.missedQuestion}
             score={summary.score}

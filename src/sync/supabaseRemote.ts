@@ -19,7 +19,7 @@ function toRemoteError(error: PostgrestLikeError): RemoteError {
     );
   }
   if (code === '42501' || code === 'PGRST301') {
-    return new RemoteError('Anmeldung abgelaufen oder keine Berechtigung – bitte erneut anmelden.', { code, transient: true });
+    return new RemoteError('Anmeldung abgelaufen oder keine Berechtigung. Bitte erneut anmelden.', { code, transient: true });
   }
   const network = !code || /fetch|network|load failed/i.test(error.message);
   return new RemoteError(network ? `Verbindungsproblem: ${error.message}` : error.message, { code, transient: network });

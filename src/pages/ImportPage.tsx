@@ -163,7 +163,7 @@ export function ImportPage({ targetDeckId }: { targetDeckId: string | null }) {
 
   return (
     <div className="page">
-      <PageHeader back="/decks" title="Fragen importieren" subtitle="Text einfügen oder JSON-Datei laden – vor dem Import siehst du eine Vorschau mit Fehler- und Duplikatprüfung." />
+      <PageHeader back="/decks" title="Fragen importieren" subtitle="Text einfügen oder JSON-Datei laden. Vor dem Import siehst du eine Vorschau mit Fehler- und Duplikatprüfung." />
 
       {done ? (
         <div className="card success-card">
@@ -241,7 +241,7 @@ export function ImportPage({ targetDeckId }: { targetDeckId: string | null }) {
                 <summary>JSON-Datenmodell</summary>
                 <pre className="mono">{`[
   {
-    "id": "optional – UUID",
+    "id": "optional, UUID",
     "question": "Was ist ein Byte?",
     "answers": ["8 Bit", "4 Bit", "16 Bit"],
     "correctIndex": 0,
@@ -250,7 +250,7 @@ export function ImportPage({ targetDeckId }: { targetDeckId: string | null }) {
     "category": "Grundlagen"
   }
 ]`}</pre>
-                <p className="muted small">Auch möglich: {'{ "name": "Java", "description": "…", "questions": [ … ] }'} – so sieht der Export eines Lernpakets aus.</p>
+                <p className="muted small">Auch möglich: {'{ "name": "Java", "description": "…", "questions": [ … ] }'}. So sieht der Export eines Lernpakets aus.</p>
               </details>
             </>
           )}
@@ -377,7 +377,7 @@ export function ImportPage({ targetDeckId }: { targetDeckId: string | null }) {
           </ol>
           <div className="preview-footer">
             <p className="muted small">
-              Fehlerhafte Einträge werden nicht übernommen – korrigiere sie im Text und erstelle die Vorschau neu.
+              Fehlerhafte Einträge werden nicht übernommen. Korrigiere sie im Text und erstelle die Vorschau neu.
             </p>
             <Button variant="primary" size="lg" icon="import" disabled={busy || counts.selected === 0} onClick={() => void runImport()}>
               {counts.selected === 0 ? 'Keine Fragen ausgewählt' : `${plural(counts.selected, 'Frage', 'Fragen')} importieren`}

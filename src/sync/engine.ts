@@ -194,7 +194,7 @@ export class SyncEngine {
       this.failures += 1;
       const offline = !this.isOnlineFn() || isNetworkError(err);
       await this.refreshStatus(
-        { lastError: offline ? 'Keine Verbindung zur Cloud – Änderungen bleiben lokal gespeichert.' : errorMessage(err) },
+        { lastError: offline ? 'Keine Verbindung zur Cloud. Änderungen bleiben lokal gespeichert.' : errorMessage(err) },
         offline ? 'offline' : 'error',
       );
       this.scheduleRetry();

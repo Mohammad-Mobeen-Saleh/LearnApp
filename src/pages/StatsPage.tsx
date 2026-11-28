@@ -89,7 +89,7 @@ export function StatsPage() {
             ) : null}
           </div>
           {repeatQuestions.length === 0 ? (
-            <p className="muted">Keine – alle zuletzt beantworteten Fragen waren richtig.</p>
+            <p className="muted">Keine. Alle zuletzt beantworteten Fragen waren richtig.</p>
           ) : (
             <ul className="repeat-list">
               {repeatQuestions.slice(0, 30).map((q) => (

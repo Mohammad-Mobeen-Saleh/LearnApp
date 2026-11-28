@@ -52,7 +52,7 @@ function Shell() {
     <div className={inGame ? 'app app-game' : 'app'}>
       {inGame ? null : (
         <header className="app-header">
-          <a className="brand" href="#/" aria-label="Meteor Defense – Startseite">
+          <a className="brand" href="#/" aria-label="Meteor Defense, Startseite">
             <Logo size={36} />
             <span className="brand-name">
               Meteor <strong>Defense</strong>
@@ -163,7 +163,7 @@ function GlobalOverlays() {
           {prompt.pending > 0 ? (
             <p className="warning-text">
               Achtung: {prompt.pending} Änderung(en) des anderen Kontos wurden noch nicht synchronisiert. Brich ab, melde dich mit dem
-              anderen Konto an und synchronisiere zuerst – oder exportiere eine Sicherung in den Einstellungen.
+              anderen Konto an und synchronisiere zuerst. Alternativ exportierst du eine Sicherung in den Einstellungen.
             </p>
           ) : null}
         </Modal>

@@ -2375,50 +2375,56 @@ body.in-game .toasts {
   top: 0;
   box-sizing: border-box;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 0.05em 0.35em;
-  min-width: 70px;
-  width: max-content;
-  padding: 0.35em 0.65em;
+  gap: 0.1em 0.4em;
+  min-width: 64px;
+  width: max-content; /* wird in fit() exakt gesetzt */
+  padding: 0.35em 0.7em;
   border-radius: 12px;
   border: 1.5px solid rgba(99, 102, 241, 0.7);
   background: rgba(16, 23, 63, 0.94);
   color: #eef2ff;
   font-family: var(--font);
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.3;
   text-align: center;
   will-change: transform, opacity;
   transition: border-color 0.12s ease, background-color 0.12s ease;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Darstellung (von fit() gewählt): eine Zeile / Abschnitte untereinander / Umbruch zwischen Wörtern */
+.answer-label[data-layout='stack'],
+.answer-label[data-layout='wrap'] {
+  flex-direction: column;
+}
+
 .answer-label .seg {
   /* jeder Abschnitt mit eigener, isolierter Schreibrichtung */
   unicode-bidi: isolate;
-  white-space: nowrap; /* Wörter nicht mitten im Wort trennen */
-  max-width: 100%;
+  flex: none;
+  white-space: nowrap;
 }
 
-.answer-label .seg-ltr {
-  white-space: normal; /* lateinische Mehrwort-Texte dürfen umbrechen */
-  overflow-wrap: normal;
+.answer-label[data-layout='wrap'] .seg {
+  flex: 0 1 auto;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.answer-label .word {
+  white-space: nowrap; /* nie innerhalb eines Wortes trennen (auch nicht am Bindestrich) */
 }
 
 .answer-label .seg-rtl {
   font-family: var(--font-arabic);
   font-weight: 600;
-  /* Platz für Vokalzeichen (Harakat) über und unter den Buchstaben */
-  line-height: 1.75;
   font-size: 1.12em;
-  white-space: normal;
-  word-break: keep-all;
-}
-
-.answer-label .word {
-  white-space: nowrap;
+  /* Platz für Vokalzeichen (Harakat) über und unter den Buchstaben */
+  line-height: 1.6;
 }
 
 .answer-label.force-wrap .seg-ltr .word {

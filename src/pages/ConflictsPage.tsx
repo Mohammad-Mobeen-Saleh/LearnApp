@@ -12,7 +12,7 @@ import { Button, EmptyState, PageHeader, useFeedback } from '../ui/components.ts
 const REASON_TEXT: Record<ConflictRecord['reason'], string> = {
   edit_edit: 'Auf zwei Geräten gleichzeitig geändert',
   remote_deleted: 'Auf einem anderen Gerät gelöscht, hier aber geändert',
-  local_deleted: 'Hier gelöscht, auf einem anderen Gerät aber inzwischen geändert – die Löschung wurde nicht ausgeführt',
+  local_deleted: 'Hier gelöscht, auf einem anderen Gerät aber inzwischen geändert. Die Löschung wurde nicht ausgeführt',
   deck_deleted: 'Das Lernpaket wurde auf einem anderen Gerät gelöscht, hier aber ergänzt',
   deck_changed: 'Die Löschung wurde nicht ausgeführt, weil ein anderes Gerät inzwischen Fragen in diesem Lernpaket geändert hat',
 };
@@ -83,7 +83,7 @@ function Version({ collection, data, title }: { collection: ConflictRecord['coll
     <div className="version card">
       <h4>{title}</h4>
       <ul className="plain-list">
-        <li>Name: {String(data.playerName ?? '') || '–'}</li>
+        <li>Name: {String(data.playerName ?? '') || 'kein Name'}</li>
         <li>Sound: {data.soundEnabled ? 'an' : 'aus'}</li>
         <li>Tempo: {SPEED_LABELS[(data.speed as SpeedSetting) ?? 'normal']}</li>
         <li>Fragen pro Spiel: {Number(data.questionsPerGame) || 'alle'}</li>

@@ -5,7 +5,7 @@
 <h1 align="center">Meteor Defense</h1>
 
 <p align="center">Spielerische Lern-App: Schiesse den Meteoriten mit der richtigen Antwort ab, bevor er den Schutzschild erreicht.<br>
-Eine einzige Progressive Web App für iPhone und Windows-Laptop – mit gemeinsamer, konfliktsicherer Synchronisierung.</p>
+Eine einzige Progressive Web App für iPhone und Windows-Laptop, mit gemeinsamer, konfliktsicherer Synchronisierung.</p>
 
 ---
 
@@ -37,14 +37,14 @@ Eine einzige Progressive Web App für iPhone und Windows-Laptop – mit gemeinsa
 | **Dashboard** | Logo, Begrüssung, «Spielen», «Lernpakete», «Fragen importieren», Lernstatistik, Highscore, Synchronisierungsstatus, Schnelleinstellungen |
 | **Lernpakete** | erstellen, umbenennen, löschen (mit Bestätigung), importieren, als JSON exportieren, Anzeige «lokal gespeichert» / «synchron» |
 | **Fragenverwaltung** | alle Fragen eines Pakets ansehen, durchsuchen, hinzufügen, korrigieren, löschen |
-| **Abwehrmodus (Phaser 3)** | kontinuierlich: 3 Meteoriten mit je einer Antwort, richtige Antwort → Abschuss und sofort die nächste Frage; eine falsche Antwort beendet das Spiel. Endlos, das Paket wird automatisch neu gemischt. Tempo- und Serienbonus, Explosionen, Soundeffekte, Pause, Neustart, Ergebnis – per Touch, Maus und Tastatur (1/2/3, Esc) |
+| **Abwehrmodus (Phaser 3)** | kontinuierlich: 3 Meteoriten mit je einer Antwort, richtige Antwort → Abschuss und sofort die nächste Frage; eine falsche Antwort beendet das Spiel. Endlos, das Paket wird automatisch neu gemischt. Tempo- und Serienbonus, Explosionen, Soundeffekte, Pause, Neustart, Ergebnis, per Touch, Maus und Tastatur (1/2/3, Esc) |
 | **Tippmodus** | ein Meteorit fällt, die Antwort wird eingetippt und mit Enter bzw. der Senden-Taste der iPhone-Tastatur abgeschickt; eine vollständig richtige Antwort wird schon beim Tippen erkannt. Richtig → Abschuss, Punkte, nächster Meteorit sofort; falsch → −10 Punkte, der Meteorit fällt weiter; Einschlag → Game Over. Gross-/Kleinschreibung und Leerzeichen werden ignoriert, optionale weitere gültige Antworten |
-| **Statistik** | richtig/falsch, Erfolgsquote, Spielrunden, Highscore, Fortschritt pro Fach, Fragen zum Wiederholen, letzte Spiele – gesamt oder getrennt nach Abwehr- und Tippmodus |
+| **Statistik** | richtig/falsch, Erfolgsquote, Spielrunden, Highscore, Fortschritt pro Fach, Fragen zum Wiederholen, letzte Spiele, gesamt oder getrennt nach Abwehr- und Tippmodus |
 | **Import** | Textformat und JSON, Vorschau, Fehlererkennung, Duplikatprüfung, «ergänzen» (Standard) oder ausdrücklich «ersetzen» |
 | **Synchronisierung** | Supabase (Auth + PostgreSQL), IndexedDB lokal, Warteschlange, Versionsprüfung, Konfliktzentrale, Tombstones, Offline-Betrieb |
 | **PWA** | Service Worker (App-Shell offline), Manifest, eigenes Logo als App-Symbol (iPhone, Windows, Browser-Tab), iOS-Startbildschirme |
 | **Datensicherung** | vollständiger JSON-Export und ergänzende Wiederherstellung |
-| **Demo** | Paket «Informatik-Grundlagen» mit 26 Fragen – sofort nach dem ersten Start spielbar |
+| **Demo** | Paket «Informatik-Grundlagen» mit 26 Fragen, sofort nach dem ersten Start spielbar |
 
 Ohne Supabase-Konfiguration läuft die App vollständig im **lokalen Modus** und zeigt deutlich an, dass die geräteübergreifende Synchronisierung noch nicht aktiv ist.
 
@@ -76,27 +76,27 @@ meteor-defense/
 
 ## 1. Entwicklungswerkzeuge unter Windows installieren
 
-1. **Node.js 22 LTS** – <https://nodejs.org> (Installer «LTS») oder in PowerShell:
+1. **Node.js 22 LTS**: <https://nodejs.org> (Installer «LTS») oder in PowerShell:
    ```powershell
    winget install OpenJS.NodeJS.LTS
    ```
    Prüfen (neues Terminal öffnen): `node -v` (≥ 20.19, empfohlen 22) und `npm -v`.
-2. **Git für Windows** – <https://git-scm.com/download/win> oder `winget install Git.Git`
-3. **Editor (optional)** – Visual Studio Code: `winget install Microsoft.VisualStudioCode`
-4. **Supabase CLI (optional)** – wird bei Bedarf über `npx supabase …` ohne Installation genutzt.
+2. **Git für Windows**: <https://git-scm.com/download/win> oder `winget install Git.Git`
+3. **Editor (optional)**: Visual Studio Code: `winget install Microsoft.VisualStudioCode`
+4. **Supabase CLI (optional)**: wird bei Bedarf über `npx supabase …` ohne Installation genutzt.
 
 ## 2. Lokal starten
 
 ```powershell
 cd meteor-defense
-npm install            # einmalig; erzeugt package-lock.json – bitte mit committen
+npm install            # einmalig; erzeugt package-lock.json, bitte mit committen
 copy .env.example .env.local   # optional, nur für die Cloud-Synchronisierung
 npm run dev
 ```
 
 Öffne <http://localhost:5173>. Das Demo-Paket ist sofort spielbar.
 
-**Auf dem iPhone im WLAN testen:** `npm run dev:host` und die angezeigte Netzwerk-Adresse (z. B. `http://192.168.1.20:5173`) in Safari öffnen. Über `http://` funktionieren Spiel und lokale Speicherung, aber **kein Service Worker und keine Installation als App** – dafür braucht iOS HTTPS. Für den echten PWA-Test die App auf Cloudflare Pages veröffentlichen (Abschnitt 8).
+**Auf dem iPhone im WLAN testen:** `npm run dev:host` und die angezeigte Netzwerk-Adresse (z. B. `http://192.168.1.20:5173`) in Safari öffnen. Über `http://` funktionieren Spiel und lokale Speicherung, aber **kein Service Worker und keine Installation als App**: dafür braucht iOS HTTPS. Für den echten PWA-Test die App auf Cloudflare Pages veröffentlichen (Abschnitt 8).
 
 ## 3. Tests und Produktionsbuild
 
@@ -164,15 +164,15 @@ Auch richtig: Systemfunktion; Funktion   (optional, nur Tippmodus, getrennt mit 
 ]
 ```
 
-Optional für den Tippmodus: `"acceptedAnswers": ["Zaster", "Moneten"]` – weitere gültige Schreibweisen oder Übersetzungen. Die Hauptlösung ist immer `answers[correctIndex]`.
+Optional für den Tippmodus: `"acceptedAnswers": ["Zaster", "Moneten"]` für weitere gültige Schreibweisen oder Übersetzungen. Die Hauptlösung ist immer `answers[correctIndex]`.
 
-Auch `{ "name": "Java", "description": "…", "questions": [ … ] }` wird erkannt (so sieht der Export eines Lernpakets aus). `difficulty`: 1–3 oder «leicht/mittel/schwer».
+Auch `{ "name": "Java", "description": "…", "questions": [ … ] }` wird erkannt (so sieht der Export eines Lernpakets aus). `difficulty`: 1 bis 3 oder «leicht/mittel/schwer».
 
 ### Prüfung vor dem Import
 
 - **Vorschau** jeder erkannten Frage mit Status *neu*, *Duplikat*, *ähnlich* oder *Fehler*.
 - **Fehler** (nicht genau 3 Antworten, fehlende/ungültige Lösung, gleiche Antworten, leerer Fragetext, zu lange Texte) werden angezeigt und **nie übernommen**. Zeilen, die zu keiner Frage gehören, werden gemeldet.
-- **Duplikate** (gleiche Frage mit gleichen Antworten, unabhängig von Gross-/Kleinschreibung und Satzzeichen) sind standardmässig abgewählt, *ähnliche* Fragen ebenfalls – beides kann bewusst angewählt werden.
+- **Duplikate** (gleiche Frage mit gleichen Antworten, unabhängig von Gross-/Kleinschreibung und Satzzeichen) sind standardmässig abgewählt, *ähnliche* Fragen ebenfalls. Beides kann bewusst angewählt werden.
 - Standard ist **«Neue Fragen ergänzen»**: Eine vorhandene Sammlung wird nie überschrieben. «Alle vorhandenen Fragen ersetzen» muss ausdrücklich gewählt und bestätigt werden.
 
 ## 5. Supabase einrichten
@@ -189,7 +189,7 @@ Auch `{ "name": "Java", "description": "…", "questions": [ … ] }` wird erkan
      (ältere Projekte: «anon public» → `VITE_SUPABASE_ANON_KEY`; Supabase stellt die alten anon-/service_role-Schlüssel laut [Migrationsleitfaden](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys) bis Ende 2026 um).
 6. Werte in `.env.local` eintragen (lokal) bzw. als Umgebungsvariablen in Cloudflare Pages (Abschnitt 8). Danach `npm run dev` neu starten bzw. neu bauen.
 
-> **Sicherheit:** Im Frontend steht ausschliesslich der öffentliche Schlüssel. Er ist dafür gedacht, im Browser ausgeliefert zu werden; geschützt werden die Daten durch Row Level Security. Den *Secret*-/*service_role*-Schlüssel nie ins Frontend, ins Repository oder in Cloudflare-Build-Variablen eintragen – die App verweigert die Verwendung eines erkennbar geheimen Schlüssels.
+> **Sicherheit:** Im Frontend steht ausschliesslich der öffentliche Schlüssel. Er ist dafür gedacht, im Browser ausgeliefert zu werden; geschützt werden die Daten durch Row Level Security. Den *Secret*-/*service_role*-Schlüssel nie ins Frontend, ins Repository oder in Cloudflare-Build-Variablen eintragen. Die App verweigert die Verwendung eines erkennbar geheimen Schlüssels.
 
 Anmeldung in der App: **Einstellungen → Anmelden / Registrieren**. Nach der Registrierung kommt eine Bestätigungs-E-Mail; nach dem Klick auf den Link in der App mit E-Mail und Passwort anmelden. «Passwort vergessen?» sendet einen Link, über den ein neues Passwort gesetzt wird.
 
@@ -197,27 +197,27 @@ Anmeldung in der App: **Einstellungen → Anmelden / Registrieren**. Nach der Re
 
 Die Datenbank ist in zwei Dateien beschrieben, die **in dieser Reihenfolge** ausgeführt werden:
 
-1. **`supabase/migrations/20261123000000_meteor_defense_schema.sql`** – Tabellen, Indizes, Row Level Security, Rechte, Trigger und die RPC-Funktionen `push_changes` / `pull_changes`.
-2. **`supabase/migrations/20261124000000_typing_mode.sql`** – Tippmodus: Spalte `accepted_answers` (Fragen) und `game_type` (Spiele). Bestehende Daten bleiben unverändert.
+1. **`supabase/migrations/20261123000000_meteor_defense_schema.sql`**: Tabellen, Indizes, Row Level Security, Rechte, Trigger und die RPC-Funktionen `push_changes` / `pull_changes`.
+2. **`supabase/migrations/20261124000000_typing_mode.sql`**: Tippmodus: Spalte `accepted_answers` (Fragen) und `game_type` (Spiele). Bestehende Daten bleiben unverändert.
 
 Beide Migrationen sind wiederholbar.
 
-**Variante A – SQL Editor (einfach):** Supabase-Dashboard → **SQL Editor** → *New query* → Inhalt der ersten Datei einfügen → **Run**, danach dasselbe mit der zweiten Datei. Erwartet: «Success. No rows returned».
+**Variante A (SQL Editor, einfach):** Supabase-Dashboard → **SQL Editor** → *New query* → Inhalt der ersten Datei einfügen → **Run**, danach dasselbe mit der zweiten Datei. Erwartet: «Success. No rows returned».
 
-**Variante B – Supabase CLI:**
+**Variante B (Supabase CLI):**
 ```powershell
 npx supabase login
 npx supabase link --project-ref DEIN-PROJEKT-REF
 npx supabase db push
 ```
 
-**Kontrolle:** Im *Table Editor* erscheinen `decks`, `questions`, `user_settings`, `sync_conflicts`, `game_sessions`, `answer_events` – jeweils mit dem Hinweis «RLS enabled».
+**Kontrolle:** Im *Table Editor* erscheinen `decks`, `questions`, `user_settings`, `sync_conflicts`, `game_sessions`, `answer_events`, jeweils mit dem Hinweis «RLS enabled».
 
 Spätere Änderungen am Schema immer als **neue** Datei in `supabase/migrations/` anlegen (Dateiname mit neuerem Zeitstempel), nie bestehende Migrationen ändern.
 
 ## 7. Sichere Synchronisierung
 
-Ziel: Laptop und iPhone sehen dieselben Lernpakete, Fragen, Einstellungen und Fortschritte – **ohne dass je ein Gerät die Daten des anderen ersetzt**.
+Ziel: Laptop und iPhone sehen dieselben Lernpakete, Fragen, Einstellungen und Fortschritte, **ohne dass je ein Gerät die Daten des anderen ersetzt**.
 
 **Grundprinzip «local first»:** Jede Änderung wird zuerst in IndexedDB gespeichert und in derselben Transaktion in eine **Warteschlange (Outbox)** eingetragen. Die App funktioniert dadurch offline; nichts geht verloren, wenn die Verbindung abbricht oder die App geschlossen wird.
 
@@ -226,7 +226,7 @@ Ziel: Laptop und iPhone sehen dieselben Lernpakete, Fragen, Einstellungen und Fo
 | **UUID pro Datensatz** (auf dem Gerät erzeugt) | Pakete von Laptop und iPhone haben verschiedene IDs und werden zusammengeführt, nie ersetzt |
 | **Einzelne Datensätze** statt Gesamtstand | Es wird nur übertragen, was sich geändert hat; Datensätze werden einzeln geprüft |
 | **Versionsnummer** (optimistische Sperre) | Der Server übernimmt eine Änderung nur, wenn sie auf der aktuellen Version basiert. Sonst meldet er einen Konflikt und überschreibt nichts |
-| **Server-Zähler** (`server_seq`, pro Benutzer streng fortlaufend) | Jedes Gerät holt «alles nach Zähler X» – auch nach Wochen offline wird nichts verpasst |
+| **Server-Zähler** (`server_seq`, pro Benutzer streng fortlaufend) | Jedes Gerät holt «alles nach Zähler X», auch nach Wochen offline wird nichts verpasst |
 | **Tombstones** (Löschmarker statt Löschen) | Gelöschte Inhalte bleiben als «gelöscht» bekannt. Ein Gerät mit alter Offline-Kopie kann sie nicht wiederherstellen |
 | **Unveränderliche Spielereignisse** | Jede Antwort und jedes Spiel ist ein eigener Datensatz. Fortschritte beider Geräte addieren sich; Highscore und Statistik werden daraus berechnet |
 | **Idempotenz** | Wird eine Änderung nach einem Verbindungsabbruch erneut gesendet, entsteht kein Duplikat |
@@ -241,7 +241,7 @@ Ziel: Laptop und iPhone sehen dieselben Lernpakete, Fragen, Einstellungen und Fo
 
 **Erstes Login:** Bereits lokal angelegte Pakete werden ins Konto übernommen und mit den Paketen anderer Geräte zusammengeführt. Das Demo-Paket hat auf allen Geräten dieselben IDs und erscheint deshalb nicht doppelt.
 
-**Abmelden:** Vorher wird synchronisiert. Sind Änderungen noch nicht übertragen (z. B. offline), warnt die App und empfiehlt eine Sicherung. Nach dem Abmelden werden die Kontodaten von diesem Gerät entfernt (sie bleiben in der Cloud). Meldet sich auf einem Gerät ein **anderes** Konto an, werden die lokalen Daten des alten Kontos erst nach Bestätigung entfernt – Konten vermischen sich nie.
+**Abmelden:** Vorher wird synchronisiert. Sind Änderungen noch nicht übertragen (z. B. offline), warnt die App und empfiehlt eine Sicherung. Nach dem Abmelden werden die Kontodaten von diesem Gerät entfernt (sie bleiben in der Cloud). Meldet sich auf einem Gerät ein **anderes** Konto an, werden die lokalen Daten des alten Kontos erst nach Bestätigung entfernt. Konten vermischen sich nie.
 
 **Row Level Security:** Jede Tabelle erlaubt Lesen/Schreiben nur für `auth.uid() = user_id`; direktes Löschen ist gesperrt, anonyme Zugriffe sind verboten.
 
@@ -257,7 +257,7 @@ git remote add origin https://github.com/DEIN-NAME/meteor-defense.git
 git push -u origin main
 ```
 
-**Variante A – Git-Integration (empfohlen):**
+**Variante A (Git-Integration, empfohlen):**
 1. Cloudflare-Dashboard → **Workers & Pages** → *Create* → *Pages* → **Connect to Git** → Repository wählen.
 2. Build-Einstellungen:
    - Framework preset: **Vite** (oder «None»)
@@ -270,12 +270,12 @@ git push -u origin main
 4. **Save and Deploy.** Jeder Push auf `main` veröffentlicht automatisch eine neue Version.
 5. Die erhaltene Adresse (z. B. `https://meteor-defense.pages.dev`) in Supabase als *Site URL* eintragen (Abschnitt 5).
 
-**Variante B – direkt hochladen (ohne Git):**
+**Variante B (direkt hochladen, ohne Git):**
 ```powershell
 npm run build
 npx wrangler pages deploy dist --project-name meteor-defense
 ```
-Achtung: Die `VITE_…`-Variablen werden beim Bauen eingesetzt – bei Variante B also vorher in `.env.local` bzw. `.env.production.local` eintragen.
+Achtung: Die `VITE_…`-Variablen werden beim Bauen eingesetzt. Bei Variante B also vorher in `.env.local` bzw. `.env.production.local` eintragen.
 
 Hinweise: Die App nutzt Hash-Routen (`#/decks`), daher sind keine Weiterleitungsregeln nötig. `public/_headers` sorgt dafür, dass `sw.js` und `index.html` nicht zwischengespeichert werden (Updates kommen sofort an), während Build-Dateien mit Hash lange gecacht werden. Cloudflare empfiehlt für neue Projekte inzwischen auch *Workers mit Static Assets*; diese App läuft dort ebenso, die Anleitung beschreibt wie gewünscht Pages.
 
@@ -303,7 +303,7 @@ Wichtig:
 ## 11. Datensicherung und Wiederherstellung
 
 - **Sicherung:** *Einstellungen → Datensicherung → Sicherung exportieren* erzeugt `meteor-defense-sicherung-JJJJ-MM-TT.json` mit allen Lernpaketen, Fragen, Einstellungen und dem Lernfortschritt. Auf dem iPhone öffnet sich das Teilen-Menü («In Dateien sichern»).
-- **Einzelnes Lernpaket:** *Lernpakete → Export* – die Datei kann auf jedem Gerät wieder importiert werden.
+- **Einzelnes Lernpaket:** *Lernpakete → Export*. Die Datei kann auf jedem Gerät wieder importiert werden.
 - **Wiederherstellung:** *Einstellungen → Datensicherung → Sicherung wiederherstellen* → Datei wählen → Vorschau prüfen → Pakete auswählen → *Wiederherstellen*.
   - Es wird nur **ergänzt**: Vorhandene Pakete und Fragen werden nie überschrieben, Duplikate übersprungen.
   - Gelöschte Inhalte werden nur zurückgeholt, wenn «Gelöschte Inhalte aus der Sicherung zurückholen» angehakt ist.
@@ -318,12 +318,12 @@ Nach der Wahl eines Lernpakets wählst du den **Spielmodus** (der zuletzt gewäh
 
 **Abwehrmodus**
 - Eine Frage, drei Meteoriten mit je einer Antwort. Tippe/klicke in die Spalte des richtigen Meteoriten (grosse Trefferflächen) oder drücke **1/2/3** (bzw. A/B/C).
-- Richtig: Der Meteorit explodiert und **die nächste Frage erscheint sofort** – ohne Zwischenbildschirm.
+- Richtig: Der Meteorit explodiert und **die nächste Frage erscheint sofort**: ohne Zwischenbildschirm.
 - **Eine falsche Antwort oder ein Einschlag beendet das Spiel.** Das Ergebnis zeigt die richtige Lösung mit Erklärung.
 - Endlos: Ist das Paket durchgespielt, wird es neu gemischt; keine Frage kommt doppelt, bevor alle einmal dran waren.
 
 **Tippmodus**
-- Ein Meteorit fällt, die Frage steht oben. Antwort eintippen und mit **Enter** (Windows) bzw. der **Senden-Taste** der Bildschirmtastatur (iPhone) abschicken. Eine vollständig richtig eingetippte Antwort wird sofort als Treffer erkannt – Punkte werden nur beim ausdrücklichen Abschicken abgezogen, nie pro Tastendruck.
+- Ein Meteorit fällt, die Frage steht oben. Antwort eintippen und mit **Enter** (Windows) bzw. der **Senden-Taste** der Bildschirmtastatur (iPhone) abschicken. Eine vollständig richtig eingetippte Antwort wird sofort als Treffer erkannt. Punkte werden nur beim ausdrücklichen Abschicken abgezogen, nie pro Tastendruck.
 - Richtig (Gross-/Kleinschreibung, Leerzeichen am Rand und doppelte Leerzeichen egal): Abschuss, Punkte, nächster Meteorit sofort.
 - Falsch: **−10 Punkte** (nie unter 0), das Feld wird geleert und bleibt aktiv, der Meteorit fällt weiter. Nur ausdrücklich abgeschickte Eingaben zählen.
 - Erreicht der Meteorit den Schutzschild: Game Over. Die Fallzeit berücksichtigt die Länge der Frage und der Lösung.
@@ -340,7 +340,7 @@ Nach der Wahl eines Lernpakets wählst du den **Spielmodus** (der zuletzt gewäh
 
 ## Logo und Icons
 
-Das Logo – eine Schutzschild-Kuppel, die einen Low-Poly-Meteoriten mit Leuchtspur abwehrt – ist in `scripts/generate-icons.mjs` als SVG definiert. Erzeugte Dateien:
+Das Logo (eine Schutzschild-Kuppel, die einen Low-Poly-Meteoriten mit Leuchtspur abwehrt) ist in `scripts/generate-icons.mjs` als SVG definiert. Erzeugte Dateien:
 
 | Datei | Zweck |
 |---|---|
@@ -362,6 +362,6 @@ Neu erzeugen nach Änderungen am Logo: `npx playwright install chromium` und `np
 | «Datenbank ist noch nicht eingerichtet» | SQL-Migration ausführen (Abschnitt 6) |
 | Bestätigungslink führt auf falsche Adresse | *Site URL* / *Redirect URLs* in Supabase anpassen |
 | iPhone zeigt alte Version | App schliessen und neu öffnen; bei «Neue Version verfügbar» auf *Aktualisieren* tippen |
-| Konflikt angezeigt | *Einstellungen → Konflikte lösen* – beide Versionen sind gesichert |
+| Konflikt angezeigt | *Einstellungen → Konflikte lösen*. Beide Versionen sind gesichert |
 | Änderung «konnte nicht übertragen werden» | *Einstellungen → Konto & Synchronisierung*: erneut versuchen oder verwerfen |
 | `npm ci` schlägt auf Cloudflare fehl | `package-lock.json` lokal mit `npm install` neu erzeugen und committen; Build-System-Version auf v3 (Node 22) stellen |

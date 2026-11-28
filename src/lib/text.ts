@@ -27,7 +27,7 @@ export function plural(count: number, one: string, many: string): string {
 }
 
 export function formatPercent(ratio: number | null): string {
-  if (ratio === null || Number.isNaN(ratio)) return '–';
+  if (ratio === null || Number.isNaN(ratio)) return 'keine Daten';
   return `${Math.round(ratio * 100)} %`;
 }
 
@@ -36,9 +36,9 @@ export function formatNumber(value: number): string {
 }
 
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return '–';
+  if (!iso) return 'unbekannt';
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '–';
+  if (Number.isNaN(d.getTime())) return 'unbekannt';
   return new Intl.DateTimeFormat('de-CH', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
 }
 

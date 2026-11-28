@@ -86,7 +86,7 @@ export function DecksPage() {
         <>
           <p>
             «{deck.name}» mit {plural(count, 'Frage', 'Fragen')} wird gelöscht
-            {cloudActive ? ' – auf allen synchronisierten Geräten.' : '.'}
+            {cloudActive ? ', und zwar auf allen synchronisierten Geräten.' : '.'}
           </p>
           <p className="muted">
             Hat ein anderes Gerät das Paket inzwischen verändert, wird die Löschung nicht ausgeführt, sondern als Konflikt angezeigt.

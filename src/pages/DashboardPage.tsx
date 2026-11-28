@@ -52,7 +52,7 @@ export function DashboardPage() {
           <Icon name="repeat" size={26} />
           <div>
             <strong>{plural(stats.repeatQuestionIds.length, 'Frage', 'Fragen')} zum Wiederholen</strong>
-            <span className="muted">Zuletzt falsch beantwortet – jetzt gezielt üben</span>
+            <span className="muted">Zuletzt falsch beantwortet. Jetzt gezielt üben</span>
           </div>
           <Icon name="chevron" />
         </a>
@@ -149,7 +149,7 @@ export function DashboardPage() {
             })}
           </ul>
         ) : (
-          <p className="muted">Noch keine Lernpakete – importiere Fragen, um loszulegen.</p>
+          <p className="muted">Noch keine Lernpakete. Importiere Fragen, um loszulegen.</p>
         )}
       </section>
     </div>

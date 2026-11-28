@@ -228,7 +228,7 @@ export function SettingsPage() {
           </dl>
           {!cloudConfigured ? (
             <p className="info-text">
-              Die Cloud (Supabase) ist nicht eingerichtet. Die App läuft im lokalen Modus – die geräteübergreifende Synchronisierung ist
+              Die Cloud (Supabase) ist nicht eingerichtet. Die App läuft im lokalen Modus, die geräteübergreifende Synchronisierung ist
               <strong> nicht aktiv</strong>. Anleitung: README, Abschnitt «Supabase einrichten».
             </p>
           ) : null}

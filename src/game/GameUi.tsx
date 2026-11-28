@@ -107,7 +107,7 @@ const MODE_TEXT: Record<GameType, { title: string; text: ReactNode; keys: string
     title: 'Abwehrmodus',
     text: (
       <>
-        Drei Meteoriten tragen je eine Antwort. <strong>Schiesse den Meteoriten mit der richtigen Antwort ab</strong> – die nächste Frage
+        Drei Meteoriten tragen je eine Antwort. <strong>Schiesse den Meteoriten mit der richtigen Antwort ab</strong>. Die nächste Frage
         folgt sofort. Eine falsche Antwort oder ein Einschlag beendet das Spiel.
       </>
     ),
@@ -118,7 +118,7 @@ const MODE_TEXT: Record<GameType, { title: string; text: ReactNode; keys: string
     text: (
       <>
         Ein Meteorit fällt Richtung Erde. <strong>Tippe die richtige Antwort ein</strong> und schicke sie mit Enter bzw. der
-        Senden-Taste der Bildschirmtastatur ab – eine vollständig richtige Antwort wird sofort erkannt. Falsche Eingabe: −10
+        Senden-Taste der Bildschirmtastatur ab. Eine vollständig richtige Antwort wird sofort erkannt. Falsche Eingabe: −10
         Punkte, der Meteorit fällt weiter. Erreicht er den Schutzschild, ist das Spiel vorbei.
       </>
     ),
@@ -167,12 +167,12 @@ export function ReadyPanel({
         <p className="mode-text">{info.text}</p>
         {unlimited ? (
           <p className="info-text small still-hint">
-            <strong>Stillstand:</strong> Die Meteoriten bleiben stehen – du hast unbegrenzt Zeit. Es gibt keinen Tempobonus. Beenden über
+            <strong>Stillstand:</strong> Die Meteoriten bleiben stehen, du hast unbegrenzt Zeit. Es gibt keinen Tempobonus. Beenden über
             Pause → «Spiel beenden» zeigt dein Ergebnis.
           </p>
         ) : null}
         <p className="muted small">
-          {repeat ? `Wiederholung: ${plural(questionCount, 'Frage', 'Fragen')}` : `${plural(questionCount, 'Frage', 'Fragen')} – endlos, wird automatisch neu gemischt`} ·{' '}
+          {repeat ? `Wiederholung: ${plural(questionCount, 'Frage', 'Fragen')}` : `${plural(questionCount, 'Frage', 'Fragen')}, endlos, wird automatisch neu gemischt`} ·{' '}
           {info.keys}
         </p>
         <div className="row center">

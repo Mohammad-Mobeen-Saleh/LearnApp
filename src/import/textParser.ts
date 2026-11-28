@@ -174,7 +174,7 @@ export function parseQuestionText(input: string): ParsedItem[] {
         }
         break;
       case 'correct':
-        if (current.correct !== null) current.warnings.push(`Zeile ${lineNo}: Lösung doppelt angegeben – die erste wird verwendet.`);
+        if (current.correct !== null) current.warnings.push(`Zeile ${lineNo}: Lösung doppelt angegeben, die erste wird verwendet.`);
         else current.correct = k.text;
         current.state = 'meta';
         break;
@@ -231,8 +231,8 @@ function blockToItem(b: Block): ParsedItem {
   if (b.answers.length !== 3) {
     errors.push(
       b.answers.length > 3
-        ? `Genau 3 Antworten (A–C) erwartet, gefunden: ${b.answers.length} (${letters.join(', ')}).`
-        : `Genau 3 Antworten (A–C) erforderlich, gefunden: ${b.answers.length}.`,
+        ? `Genau 3 Antworten (A bis C) erwartet, gefunden: ${b.answers.length} (${letters.join(', ')}).`
+        : `Genau 3 Antworten (A bis C) erforderlich, gefunden: ${b.answers.length}.`,
     );
   } else if (new Set(letters).size !== 3) {
     errors.push(`Antwortbuchstaben doppelt vergeben (${letters.join(', ')}).`);
@@ -261,7 +261,7 @@ function blockToItem(b: Block): ParsedItem {
   if (b.difficulty !== null) {
     const parsed = parseDifficulty(b.difficulty);
     if (parsed) difficulty = parsed;
-    else warnings.push(`Unbekannte Schwierigkeit «${b.difficulty.trim()}» – «mittel» wird verwendet.`);
+    else warnings.push(`Unbekannte Schwierigkeit «${b.difficulty.trim()}». Es wird «mittel» verwendet.`);
   }
 
   const candidate: Partial<DraftQuestion> = {

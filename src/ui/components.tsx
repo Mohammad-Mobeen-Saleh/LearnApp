@@ -259,7 +259,7 @@ export function describeSync(status: SyncStatus): SyncView {
       return {
         icon: 'cloudOff',
         label: 'Nur lokal',
-        detail: 'Cloud nicht eingerichtet – die geräteübergreifende Synchronisierung ist noch nicht aktiv. Alle Daten bleiben auf diesem Gerät.',
+        detail: 'Cloud nicht eingerichtet. Die geräteübergreifende Synchronisierung ist noch nicht aktiv. Alle Daten bleiben auf diesem Gerät.',
         tone: 'neutral',
       };
     case 'signed_out':
@@ -277,7 +277,7 @@ export function describeSync(status: SyncStatus): SyncView {
         label: pending ? `Offline · ${pending} lokal` : 'Offline',
         detail: pending
           ? `${pending} Änderung(en) sind lokal gespeichert und werden automatisch übertragen, sobald wieder eine Verbindung besteht.`
-          : 'Keine Internetverbindung. Du kannst weiterspielen – Änderungen werden lokal gespeichert.',
+          : 'Keine Internetverbindung. Du kannst weiterspielen, Änderungen werden lokal gespeichert.',
         tone: 'warning',
       };
     case 'syncing':
@@ -286,7 +286,7 @@ export function describeSync(status: SyncStatus): SyncView {
       return {
         icon: 'alert',
         label: 'Sync-Fehler',
-        detail: `${status.lastError ?? 'Unbekannter Fehler'} – Änderungen bleiben lokal gespeichert, es wird automatisch erneut versucht.`,
+        detail: `${status.lastError ?? 'Unbekannter Fehler'}. Änderungen bleiben lokal gespeichert, es wird automatisch erneut versucht.`,
         tone: 'error',
       };
     default:
@@ -330,7 +330,7 @@ export function ConflictBanner({ count }: { count: number }) {
     <a className="banner banner-warning" href="#/conflicts">
       <Icon name="conflict" />
       <span>
-        {count === 1 ? '1 Synchronisierungskonflikt' : `${count} Synchronisierungskonflikte`} – beide Versionen sind gesichert. Jetzt entscheiden
+        {count === 1 ? '1 Synchronisierungskonflikt' : `${count} Synchronisierungskonflikte`}. Beide Versionen sind gesichert. Jetzt entscheiden
       </span>
       <Icon name="chevron" />
     </a>

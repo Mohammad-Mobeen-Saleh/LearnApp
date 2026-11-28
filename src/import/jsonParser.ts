@@ -105,7 +105,7 @@ function parseJsonQuestion(value: unknown, position: number): ParsedItem {
   if (q.difficulty !== undefined && q.difficulty !== null && q.difficulty !== '') {
     const parsed = parseDifficulty(q.difficulty);
     if (parsed) difficulty = parsed;
-    else warnings.push(`Unbekannte Schwierigkeit «${String(q.difficulty)}» – «mittel» wird verwendet.`);
+    else warnings.push(`Unbekannte Schwierigkeit «${String(q.difficulty)}». Es wird «mittel» verwendet.`);
   }
 
   const explanation = typeof q.explanation === 'string' ? q.explanation : '';
@@ -123,7 +123,7 @@ function parseJsonQuestion(value: unknown, position: number): ParsedItem {
   let sourceId: string | undefined;
   if (q.id !== undefined) {
     if (isUuid(q.id)) sourceId = q.id.toLowerCase();
-    else warnings.push('«id» ist keine UUID – es wird eine neue ID vergeben.');
+    else warnings.push('«id» ist keine UUID. Es wird eine neue ID vergeben.');
   }
 
   const candidate: Partial<DraftQuestion> = {

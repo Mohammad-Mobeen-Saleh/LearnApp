@@ -308,7 +308,7 @@ export function GameView({ questions, deckId, mode, title, settings, previousHig
 
         {overlay === 'results' && summary ? (
           <ResultsPanel
-            heading={summary.reason === 'completed' ? 'Geschafft – die Erde ist sicher!' : summary.reason === 'quit' ? 'Runde beendet' : 'Game Over'}
+            heading={summary.reason === 'completed' ? 'Geschafft! Die Erde ist sicher.' : summary.reason === 'quit' ? 'Runde beendet' : 'Game Over'}
             reasonText={endReason}
             decisive={summary.reason === 'completed' || summary.reason === 'quit' ? null : (last?.question ?? null)}
             score={summary.score}
