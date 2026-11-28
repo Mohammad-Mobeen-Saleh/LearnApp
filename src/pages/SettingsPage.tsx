@@ -2,7 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useAuthState, useLiveQuery, useServices, useSettings, useSyncStatus } from '../app/ServicesContext.tsx';
 import { getPwaState, isIos, isStandalone, promptInstall, subscribePwa } from '../app/pwa.ts';
 import { createBackup, parseBackup, previewRestore, restoreBackup, type BackupFile, type RestorePreview } from '../data/backup.ts';
-import { LIMITS, SPEED_LABELS, type SpeedSetting } from '../domain/types.ts';
+import { LIMITS, SNAKE_MAP_LABELS, SNAKE_SPEED_LABELS, SPEED_LABELS, type SnakeMapSize, type SnakeSpeed, type SpeedSetting } from '../domain/types.ts';
 import { formatDateTime, formatRelative, plural } from '../lib/text.ts';
 import { Button, describeSync, LinkButton, PageHeader, useDownload, useFeedback } from '../ui/components.tsx';
 import { Icon } from '../ui/Icon.tsx';
@@ -164,7 +164,7 @@ export function SettingsPage() {
         <section className="card">
           <div className="card-title">
             <Icon name="play" />
-            <h2>Spiel</h2>
+            <h2>Spiele</h2>
           </div>
           <form className="form" onSubmit={(e) => e.preventDefault()}>
             <label className="field">
@@ -193,11 +193,31 @@ export function SettingsPage() {
               />
             </label>
             <label className="field">
-              <span>Tempo der Meteoriten (Abwehr- und Tippmodus)</span>
+              <span>Meteor Defense: Tempo der Meteoriten (Abwehr- und Tippmodus)</span>
               <select value={settings?.speed ?? 'normal'} onChange={(e) => void store.updateSettings({ speed: e.target.value as SpeedSetting })}>
                 {(Object.keys(SPEED_LABELS) as SpeedSetting[]).map((s) => (
                   <option key={s} value={s}>
                     {SPEED_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Snake: Kartengrösse</span>
+              <select value={settings?.snakeMapSize ?? 'large'} onChange={(e) => void store.updateSettings({ snakeMapSize: e.target.value as SnakeMapSize })}>
+                {(Object.keys(SNAKE_MAP_LABELS) as SnakeMapSize[]).map((m) => (
+                  <option key={m} value={m}>
+                    {SNAKE_MAP_LABELS[m]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Snake: Geschwindigkeit</span>
+              <select value={settings?.snakeSpeed ?? 'medium'} onChange={(e) => void store.updateSettings({ snakeSpeed: e.target.value as SnakeSpeed })}>
+                {(Object.keys(SNAKE_SPEED_LABELS) as SnakeSpeed[]).map((v) => (
+                  <option key={v} value={v}>
+                    {SNAKE_SPEED_LABELS[v]}
                   </option>
                 ))}
               </select>

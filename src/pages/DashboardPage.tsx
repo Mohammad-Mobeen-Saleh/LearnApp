@@ -120,7 +120,7 @@ export function DashboardPage() {
               <span>Soundeffekte</span>
             </label>
             <label className="field field-inline">
-              <span>Tempo</span>
+              <span>Tempo Meteor Defense</span>
               <select value={settings?.speed ?? 'normal'} onChange={(e) => void store.updateSettings({ speed: e.target.value as SpeedSetting })}>
                 {(Object.keys(SPEED_LABELS) as SpeedSetting[]).map((s) => (
                   <option key={s} value={s}>
