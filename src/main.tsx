@@ -23,7 +23,7 @@ async function bootstrap() {
     root.render(
       <div className="fatal">
         <img src="/icons/logo.svg" width={72} height={72} alt="" />
-        <h1>Meteor Defense konnte nicht starten</h1>
+        <h1>LernArcade konnte nicht starten</h1>
         <p>{err instanceof Error ? err.message : String(err)}</p>
         <p className="muted">
           Der lokale Speicher (IndexedDB) ist nicht verfügbar. Bitte privaten Modus beenden oder Website-Daten für diese Seite

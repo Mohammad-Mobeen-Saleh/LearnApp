@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GameController, type GameQuestion, type GameSummary } from '../domain/game.ts';
-import { DIFFICULTY_LABELS, type GameMode, type GameType, type Settings } from '../domain/types.ts';
+import { DIFFICULTY_LABELS, type GameMode, type MeteorMode, type Settings } from '../domain/types.ts';
 import { formatNumber, formatPercent } from '../lib/text.ts';
 import { Icon } from '../ui/Icon.tsx';
 import { GameCanvas } from './GameCanvas.tsx';
@@ -23,10 +23,10 @@ export interface GameViewProps {
   settings: Settings;
   previousHighscore: number;
   onExit: () => void;
-  onChangeType: (t: GameType) => void;
+  onChangeType: (t: MeteorMode) => void;
   onChangeMode: () => void;
   /** meldet den Endpunktestand (für den Highscore beim Moduswechsel) */
-  onScore?: (t: GameType, score: number) => void;
+  onScore?: (t: MeteorMode, score: number) => void;
 }
 
 type Overlay = 'ready' | 'none' | 'paused' | 'results';

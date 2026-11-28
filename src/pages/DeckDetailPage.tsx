@@ -68,7 +68,7 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
             </LinkButton>
             <Button
               icon="export"
-              onClick={() => void download(`meteor-defense-${slugify(deck.name)}.json`, JSON.stringify(createDeckExport(deck, questions ?? []), null, 2))}
+              onClick={() => void download(`lernarcade-${slugify(deck.name)}.json`, JSON.stringify(createDeckExport(deck, questions ?? []), null, 2))}
             >
               Export
             </Button>

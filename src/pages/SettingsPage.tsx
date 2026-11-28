@@ -49,7 +49,7 @@ export function SettingsPage() {
   const exportBackup = async () => {
     const file = await createBackup(store);
     const date = new Date().toISOString().slice(0, 10);
-    await download(`meteor-defense-sicherung-${date}.json`, JSON.stringify(file, null, 2));
+    await download(`lernarcade-sicherung-${date}.json`, JSON.stringify(file, null, 2));
     toast('Sicherung erstellt.', 'success');
   };
 
@@ -83,7 +83,7 @@ export function SettingsPage() {
       });
       if (!ok) return;
       const date = new Date().toISOString().slice(0, 10);
-      await download(`meteor-defense-vor-demo-bereinigung-${date}.json`, JSON.stringify(await createBackup(store), null, 2));
+      await download(`lernarcade-vor-demo-bereinigung-${date}.json`, JSON.stringify(await createBackup(store), null, 2));
       const report = await store.cleanupDemoData();
       if (sync.hasRemote) {
         const synced = await sync.sync();

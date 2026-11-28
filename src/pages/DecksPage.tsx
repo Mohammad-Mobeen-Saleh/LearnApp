@@ -103,7 +103,7 @@ export function DecksPage() {
 
   const exportDeck = async (deck: Deck) => {
     const questions = await store.listQuestions(deck.id);
-    await download(`meteor-defense-${slugify(deck.name)}.json`, JSON.stringify(createDeckExport(deck, questions), null, 2));
+    await download(`lernarcade-${slugify(deck.name)}.json`, JSON.stringify(createDeckExport(deck, questions), null, 2));
   };
 
   return (

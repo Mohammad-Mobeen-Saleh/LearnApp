@@ -52,10 +52,10 @@ function Shell() {
     <div className={inGame ? 'app app-game' : 'app'}>
       {inGame ? null : (
         <header className="app-header">
-          <a className="brand" href="#/" aria-label="Meteor Defense, Startseite">
+          <a className="brand" href="#/" aria-label="LernArcade, Startseite">
             <Logo size={36} />
             <span className="brand-name">
-              Meteor <strong>Defense</strong>
+              Lern<strong>Arcade</strong>
             </span>
           </a>
           <nav className="top-nav" aria-label="Hauptnavigation">
@@ -137,7 +137,7 @@ function GlobalOverlays() {
       {pwa ? (
         <div className="update-banner" role="status">
           <Icon name="sync" />
-          <span>Eine neue Version von Meteor Defense ist verfügbar.</span>
+          <span>Eine neue Version von LernArcade ist verfügbar.</span>
           <Button variant="primary" size="sm" onClick={() => void applyUpdate()}>
             Aktualisieren
           </Button>

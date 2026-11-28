@@ -16,9 +16,9 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'favicon.svg', 'favicon-16.png', 'favicon-32.png', 'apple-touch-icon.png', 'icons/logo.svg'],
       manifest: {
         id: '/',
-        name: 'Meteor Defense',
-        short_name: 'Meteor Defense',
-        description: 'Lernfragen spielerisch üben: Schiesse den Meteoriten mit der richtigen Antwort ab.',
+        name: 'LernArcade',
+        short_name: 'LernArcade',
+        description: 'Lernfragen spielerisch üben, mit Minispielen wie Meteor Defense und Snake.',
         lang: 'de',
         dir: 'ltr',
         start_url: '/',

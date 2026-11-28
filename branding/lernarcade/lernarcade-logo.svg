@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="LernArcade Logo">
+  <title>LernArcade</title>
+  <defs>
+    <linearGradient id="larounded-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1030"/><stop offset="0.6" stop-color="#151a4a"/><stop offset="1" stop-color="#24124f"/>
+    </linearGradient>
+    <radialGradient id="larounded-glow" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#6366f1" stop-opacity="0.35"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="larounded-t0" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6d28d9"/></linearGradient>
+    <linearGradient id="larounded-t1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4ade80"/><stop offset="1" stop-color="#15803d"/></linearGradient>
+    <linearGradient id="larounded-t2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706"/></linearGradient>
+    <linearGradient id="larounded-t3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#0e7490"/></linearGradient>
+    <filter id="larounded-blur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="14"/></filter>
+    <clipPath id="larounded-clip"><rect width="512" height="512" rx="112"/></clipPath>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#larounded-bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#larounded-glow)"/>
+  <g clip-path="url(#larounded-clip)">
+    <g transform="translate(0 0) scale(1)">
+      <g filter="url(#larounded-blur)"><rect x="92" y="92" width="148" height="148" rx="34" fill="#a78bfa" opacity="0.35"/><rect x="272" y="92" width="148" height="148" rx="34" fill="#4ade80" opacity="0.35"/><rect x="92" y="272" width="148" height="148" rx="34" fill="#fbbf24" opacity="0.35"/><rect x="272" y="272" width="148" height="148" rx="34" fill="#22d3ee" opacity="0.35"/></g>
+      <rect x="92" y="92" width="148" height="148" rx="34" fill="url(#larounded-t0)"/><rect x="272" y="92" width="148" height="148" rx="34" fill="url(#larounded-t1)"/><rect x="92" y="272" width="148" height="148" rx="34" fill="url(#larounded-t2)"/><rect x="272" y="272" width="148" height="148" rx="34" fill="url(#larounded-t3)"/>
+      <g transform="translate(92 92)">
+      <path d="M58 90 L126 22 L136 32 L68 100 Z" fill="#ede9fe" opacity="0.55"/>
+      <path d="M48 80 L108 20" stroke="#f5f3ff" stroke-width="8" stroke-linecap="round" opacity="0.5"/>
+      <path d="M40 74 L64 60 L88 70 L94 96 L76 116 L50 112 L36 94 Z" fill="#f5f3ff"/>
+      <path d="M64 60 L70 86 L94 96 M70 86 L50 112" stroke="#c4b5fd" stroke-width="4" fill="none" stroke-linejoin="round"/>
+    </g><g transform="translate(272 92)">
+      <path d="M30 112 C30 82 64 82 74 74 C86 64 86 40 112 40" stroke="#f0fdf4" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="116" cy="40" r="6" fill="#14532d"/>
+      <circle cx="40" cy="40" r="15" fill="#fef08a"/>
+      <path d="M40 24 q6 -10 14 -8" stroke="#bbf7d0" stroke-width="5" stroke-linecap="round" fill="none"/>
+    </g><g transform="translate(92 272)">
+      <path d="M50 54 a24 24 0 1 1 34 22 c-8 4 -10 9 -10 18" stroke="#fffbeb" stroke-width="17" stroke-linecap="round" fill="none"/>
+      <circle cx="74" cy="118" r="10" fill="#fffbeb"/>
+    </g><g transform="translate(272 272)">
+      <path d="M56 40 L110 74 L56 108 Z" fill="#ecfeff" stroke="#ecfeff" stroke-width="10" stroke-linejoin="round"/>
+    </g>
+    </g>
+  </g>
+</svg>

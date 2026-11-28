@@ -1,4 +1,4 @@
-/** Gemeinsame Datentypen von Meteor Defense. */
+/** Gemeinsame Datentypen von LernArcade (alle Spiele). */
 
 export type Difficulty = 1 | 2 | 3;
 export type AnswerIndex = 0 | 1 | 2;
@@ -55,6 +55,9 @@ export interface SettingsContent {
   /** 0 = alle Fragen des Pakets */
   questionsPerGame: number;
   reduceMotion: boolean;
+  /** Snake: Kartengrösse und Geschwindigkeit (unabhängig vom Meteor-Defense-Tempo) */
+  snakeMapSize: SnakeMapSize;
+  snakeSpeed: SnakeSpeed;
 }
 
 export interface Settings extends SyncFields, SettingsContent {}
@@ -76,10 +79,26 @@ export interface AnswerEvent {
 
 export type GameMode = 'normal' | 'repeat';
 
-/** Spielmodus: Abwehrmodus (3 Antwortmeteoriten) oder Tippmodus (Antwort eintippen). */
-export type GameType = 'defense' | 'typing';
+/**
+ * Spielvariante, gespeichert in game_sessions.game_type:
+ *  - 'defense' Meteor Defense, Abwehrmodus (3 Antwortmeteoriten)
+ *  - 'typing'  Meteor Defense, Tippmodus (Antwort eintippen)
+ *  - 'snake'   Snake (3 Antwortfrüchte)
+ */
+export type GameType = 'defense' | 'typing' | 'snake';
 
-export const GAME_TYPE_LABELS: Record<GameType, string> = { defense: 'Abwehrmodus', typing: 'Tippmodus' };
+/** Spiele der LernArcade (ein Spiel kann mehrere Varianten haben). */
+export type GameId = 'meteor-defense' | 'snake';
+
+export const GAME_TYPE_LABELS: Record<GameType, string> = { defense: 'Abwehrmodus', typing: 'Tippmodus', snake: 'Snake' };
+
+/** Meteor-Defense-Modi (für Moduswahl und Texte im Spiel) */
+export type MeteorMode = Extract<GameType, 'defense' | 'typing'>;
+
+export type SnakeMapSize = 'small' | 'large';
+export type SnakeSpeed = 'slow' | 'medium' | 'fast';
+export const SNAKE_MAP_LABELS: Record<SnakeMapSize, string> = { small: 'Kleine Karte', large: 'Grosse Karte' };
+export const SNAKE_SPEED_LABELS: Record<SnakeSpeed, string> = { slow: 'Langsam', medium: 'Mittel', fast: 'Schnell' };
 
 /** Unveränderliches Spielereignis: ein beendetes Spiel. */
 export interface GameSessionRecord {
@@ -139,6 +158,8 @@ export const DEFAULT_SETTINGS: SettingsContent = {
   speed: 'normal',
   questionsPerGame: 10,
   reduceMotion: false,
+  snakeMapSize: 'large',
+  snakeSpeed: 'medium',
 };
 
 /** Grenzwerte – identisch mit den CHECK-Constraints in der Datenbank. */

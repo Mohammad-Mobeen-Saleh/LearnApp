@@ -7,7 +7,7 @@ import type { SyncStatus } from '../sync/engine.ts';
 // ------------------------------------------------------------------ Logo
 
 export function Logo({ size = 40, className }: { size?: number; className?: string }) {
-  return <img className={className ? `logo ${className}` : 'logo'} src="/icons/logo.svg" width={size} height={size} alt="Meteor Defense" draggable={false} />;
+  return <img className={className ? `logo ${className}` : 'logo'} src="/icons/logo.svg" width={size} height={size} alt="LernArcade" draggable={false} />;
 }
 
 // ------------------------------------------------------------------ Buttons & Layout
