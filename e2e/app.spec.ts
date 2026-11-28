@@ -137,7 +137,7 @@ test.describe('Tippmodus', () => {
     // Meteorit bis zum Schutzschild fallen lassen (Tempo «Schnell»)
     await expect(page.locator('.results')).toBeVisible({ timeout: 45_000 });
     await expect(page.getByRole('heading', { name: 'Game Over' })).toBeVisible();
-    await expect(page.locator('.decisive')).toContainText('Richtig wäre');
+    await expect(page.locator('.decisive')).toContainText('Richtige Antwort');
     await page.goto('/#/settings');
     await page.getByLabel(/Tempo der Meteoriten/).selectOption('normal');
   });

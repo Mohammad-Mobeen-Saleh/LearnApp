@@ -18,11 +18,16 @@ import { Icon } from '../ui/Icon.tsx';
 export function BidiText({ text }: { text: string }) {
   const segments = splitBidiSegments(text);
   if (!segments.some((seg) => seg.dir === 'rtl')) return <>{text}</>;
+  // Normaler Fliesstext mit isolierten Abschnitten (kein Flex-Layout: das hat Wörter in
+  // schmalen Containern Buchstabe für Buchstabe umbrochen)
   return (
-    <span className="bidi-text" dir={segments.length === 1 ? 'rtl' : 'ltr'}>
+    <span className="bidi-text">
       {segments.map((seg, i) => (
-        <span key={i} dir={seg.dir} lang={seg.dir === 'rtl' ? 'ar' : undefined} className={seg.dir === 'rtl' ? 'seg seg-rtl' : 'seg seg-ltr'}>
-          {seg.text}
+        <span key={i}>
+          {i > 0 ? ' ' : null}
+          <span dir={seg.dir} lang={seg.dir === 'rtl' ? 'ar' : undefined} className={seg.dir === 'rtl' ? 'seg seg-rtl' : 'seg seg-ltr'}>
+            {seg.text}
+          </span>
         </span>
       ))}
     </span>
@@ -254,10 +259,17 @@ export function ResultsPanel({
   onExit: () => void;
 }) {
   const others = wrongQuestions.filter((q) => q.id !== decisive?.id);
-  const solutionText = (q: GameQuestion) =>
-    gameType === 'typing'
-      ? acceptedSolutions(q).join(' / ')
-      : `${ANSWER_LETTERS[q.correctIndex]}) ${q.answers[q.correctIndex]}`;
+  /** Richtige Lösung: Antwortbuchstabe getrennt vom (evtl. arabischen) Antworttext. */
+  const solution = (q: GameQuestion) =>
+    gameType === 'typing' ? (
+      <BidiText text={acceptedSolutions(q).join(' / ')} />
+    ) : (
+      <>
+        <span className="solution-letter">{ANSWER_LETTERS[q.correctIndex]}</span>
+        <BidiText text={q.answers[q.correctIndex]} />
+      </>
+    );
+  const explanationOf = (q: GameQuestion) => (q.explanation ?? '').trim();
   return (
     <div className="game-overlay">
       <div className="overlay-card card results">
@@ -277,16 +289,16 @@ export function ResultsPanel({
         </dl>
         {decisive ? (
           <div className="decisive">
-            <strong>
-              <BidiText text={decisive.question} />
-            </strong>
-            <span>
-              Richtig wäre:{' '}
-              <strong>
-                <BidiText text={solutionText(decisive)} />
-              </strong>
-            </span>
-            {decisive.explanation ? <span className="muted small">{decisive.explanation}</span> : null}
+            <p className="decisive-solution">
+              <span className="muted">Richtige Antwort</span>
+              <strong>{solution(decisive)}</strong>
+            </p>
+            {/* Erklärung nur, wenn beim Erstellen der Frage eine erfasst wurde */}
+            {explanationOf(decisive) ? (
+              <p className="decisive-explanation">
+                <BidiText text={explanationOf(decisive)} />
+              </p>
+            ) : null}
           </div>
         ) : null}
         <div className="stack">
@@ -315,9 +327,13 @@ export function ResultsPanel({
                     <BidiText text={q.question} />
                   </strong>
                   <span>
-                    Richtig: <BidiText text={solutionText(q)} />
+                    Richtig: {solution(q)}
                   </span>
-                  {q.explanation ? <span className="muted small">{q.explanation}</span> : null}
+                  {explanationOf(q) ? (
+                    <span className="muted small">
+                      <BidiText text={explanationOf(q)} />
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ul>

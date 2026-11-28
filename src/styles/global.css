@@ -2216,14 +2216,57 @@ body.in-game .toasts {
 .decisive {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin: 0 0 14px;
-  padding: 10px 12px;
-  text-align: left;
+  padding: 10px 14px;
+  text-align: center;
   border-radius: 12px;
   border: 1px solid rgba(248, 113, 113, 0.45);
   background: rgba(248, 113, 113, 0.08);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word; /* nur zu lange Einzelwörter umbrechen, nie Buchstabe für Buchstabe */
+}
+
+.decisive p {
+  margin: 0;
+}
+
+.decisive-solution {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.decisive-solution .muted {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.decisive-solution strong {
+  font-size: 1.15rem;
+}
+
+.decisive-explanation {
+  padding-top: 6px;
+  border-top: 1px solid rgba(248, 113, 113, 0.25);
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: pre-line;
+}
+
+.solution-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  margin-right: 0.4em;
+  padding: 0 0.3em;
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.3);
+  font-size: 0.8em;
+  vertical-align: 0.1em;
 }
 
 .stats-filter {
@@ -2474,12 +2517,8 @@ body.in-game .toasts {
 
 /* Gemischte arabisch-lateinische Texte in HTML (Frage, Ergebnis) */
 .bidi-text {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 0.35em;
   unicode-bidi: isolate;
-  max-width: 100%;
+  overflow-wrap: normal;
 }
 
 .bidi-text .seg {
@@ -2487,9 +2526,14 @@ body.in-game .toasts {
 }
 
 .bidi-text .seg-rtl {
+  /* Umbruch nur zwischen Wörtern: Wörter samt Vokalzeichen bleiben zusammen */
+  word-break: keep-all;
+}
+
+.bidi-text .seg-rtl {
   font-family: var(--font-arabic);
   font-size: 1.1em;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .game-question h1 .bidi-text {
